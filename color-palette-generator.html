@@ -1,0 +1,4240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vanguard - Professional Design System Studio</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎨</text></svg>">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link id="fontLink" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- Clerk Authentication -->
+    <script src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@5/dist/clerk.browser.js" crossorigin="anonymous" onerror="console.log('Clerk SDK failed to load - authentication features will be disabled')"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            /* Core System Colors */
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-tertiary: #1a1a24;
+            --surface-primary: rgba(255, 255, 255, 0.02);
+            --surface-secondary: rgba(255, 255, 255, 0.05);
+            --surface-hover: rgba(255, 255, 255, 0.08);
+            --border-primary: rgba(255, 255, 255, 0.1);
+            --border-secondary: rgba(255, 255, 255, 0.05);
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0b8;
+            --text-tertiary: #6b6b80;
+            --accent-primary: #6366f1;
+            --accent-secondary: #818cf8;
+            --accent-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --info: #3b82f6;
+
+            /* Dynamic Design Variables */
+            --font-heading: 'Inter', -apple-system, sans-serif;
+            --font-body: 'Inter', -apple-system, sans-serif;
+            --size-base: 16px;
+            --weight-normal: 400;
+            --weight-medium: 500;
+            --weight-bold: 700;
+            --line-height: 1.6;
+            --spacing-unit: 8px;
+            --radius-sm: 4px;
+            --radius-md: 8px;
+            --radius-lg: 12px;
+            --radius-xl: 16px;
+            --shadow-sm: 0 2px 4px rgba(0,0,0,0.1);
+            --shadow-md: 0 4px 20px rgba(0,0,0,0.08);
+            --shadow-lg: 0 12px 40px rgba(0,0,0,0.15);
+            --transition-fast: 0.15s;
+            --transition-base: 0.3s;
+            --transition-slow: 0.5s;
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            transition: background 0.3s ease;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Animated Background */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .bg-animation::before,
+        .bg-animation::after {
+            content: '';
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: 0.3;
+            animation: float 20s infinite ease-in-out;
+        }
+
+        .bg-animation::before {
+            top: 20%;
+            left: 20%;
+            width: 300px;
+            height: 300px;
+            background: #6366f1;
+            animation-delay: 0s;
+        }
+
+        .bg-animation::after {
+            bottom: 20%;
+            right: 20%;
+            width: 400px;
+            height: 400px;
+            background: #8b5cf6;
+            animation-delay: -10s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            25% { transform: translate(50px, -50px) scale(1.1); }
+            50% { transform: translate(-30px, 30px) scale(0.9); }
+            75% { transform: translate(-50px, -30px) scale(1.05); }
+        }
+
+        /* Main Layout */
+        .app-container {
+            display: flex;
+            height: 100vh;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Control Panel */
+        .control-panel {
+            width: 480px;
+            background: rgba(18, 18, 26, 0.8);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid var(--border-primary);
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease;
+            z-index: 10;
+        }
+
+        .control-panel.collapsed {
+            transform: translateX(-430px);
+        }
+
+        /* Panel Header */
+        .panel-header {
+            padding: 1rem 1.5rem;
+            background: linear-gradient(180deg, rgba(99, 102, 241, 0.1) 0%, transparent 100%);
+            border-bottom: 1px solid var(--border-primary);
+            position: relative;
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background-size: 400% 400%;
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 8px 24px rgba(99, 102, 241, 0.3);
+            animation: gradientShift 8s ease infinite, pulse 3s infinite ease-in-out;
+        }
+
+        @keyframes gradientShift {
+            0% {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+            }
+            14% {
+                background: linear-gradient(135deg, #a960ee 0%, #ff5e9a 100%);
+                box-shadow: 0 8px 24px rgba(169, 96, 238, 0.4);
+            }
+            28% {
+                background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+                box-shadow: 0 8px 24px rgba(240, 147, 251, 0.4);
+            }
+            42% {
+                background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+                box-shadow: 0 8px 24px rgba(79, 172, 254, 0.4);
+            }
+            56% {
+                background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+                box-shadow: 0 8px 24px rgba(67, 233, 123, 0.4);
+            }
+            70% {
+                background: linear-gradient(135deg, #fdeb71 0%, #f8d800 100%);
+                box-shadow: 0 8px 24px rgba(253, 235, 113, 0.4);
+            }
+            84% {
+                background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+                box-shadow: 0 8px 24px rgba(250, 112, 154, 0.4);
+            }
+            100% {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .app-title {
+            font-size: 1.5rem;
+            font-weight: 800;
+            background-image: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+            animation: textGradientShift 10s ease infinite;
+        }
+
+        @keyframes textGradientShift {
+            0% {
+                background-image: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            }
+            14% {
+                background-image: linear-gradient(135deg, #a960ee 0%, #ff5e9a 100%);
+            }
+            28% {
+                background-image: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            }
+            42% {
+                background-image: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            }
+            56% {
+                background-image: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            }
+            70% {
+                background-image: linear-gradient(135deg, #fdeb71 0%, #f8d800 100%);
+            }
+            84% {
+                background-image: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            }
+            100% {
+                background-image: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            }
+        }
+
+        .app-version {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+            margin-top: 0.25rem;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 0.4rem;
+        }
+
+        .icon-btn {
+            width: 32px;
+            height: 32px;
+            background: var(--surface-primary);
+            border: 1px solid var(--border-primary);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all var(--transition-fast) ease;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .icon-btn:hover {
+            background: var(--surface-hover);
+            color: var(--text-primary);
+            transform: translateY(-2px);
+        }
+
+        .icon-btn.active {
+            background: var(--accent-primary);
+            color: white;
+            border-color: var(--accent-primary);
+        }
+
+        /* User Profile Button */
+        .user-profile-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.3rem 0.6rem;
+            background: var(--surface-primary);
+            border: 1px solid var(--border-primary);
+            border-radius: var(--radius-lg);
+            cursor: pointer;
+            transition: all var(--transition-fast) ease;
+            position: relative;
+        }
+
+        .user-profile-btn:hover {
+            background: var(--surface-secondary);
+            border-color: var(--accent-primary);
+            transform: translateY(-1px);
+        }
+
+        .user-profile-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--accent-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 0.8rem;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .user-profile-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .user-profile-name {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            max-width: 120px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* User Dropdown Menu */
+        .user-dropdown {
+            position: absolute;
+            top: calc(100% + 0.5rem);
+            right: 0;
+            min-width: 220px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: var(--radius-lg);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all var(--transition-fast) ease;
+            z-index: 1000;
+            overflow: hidden;
+        }
+
+        .user-dropdown.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .user-dropdown-header {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-primary);
+            background: var(--surface-primary);
+        }
+
+        .user-dropdown-email {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+
+        .user-dropdown-menu {
+            padding: 0.5rem;
+        }
+
+        .user-dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all var(--transition-fast) ease;
+            color: var(--text-primary);
+            text-decoration: none;
+            border: none;
+            background: transparent;
+            width: 100%;
+            text-align: left;
+            font-family: var(--font-body);
+        }
+
+        .user-dropdown-item:hover {
+            background: var(--surface-secondary);
+            color: var(--accent-primary);
+        }
+
+        .user-dropdown-item.danger:hover {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--error);
+        }
+
+        .user-dropdown-icon {
+            width: 20px;
+            text-align: center;
+            font-size: 1.1rem;
+        }
+
+        .user-dropdown-text {
+            flex: 1;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        /* Tabs */
+        .tabs-container {
+            border-bottom: 1px solid var(--border-primary);
+            background: var(--surface-primary);
+        }
+
+        .tabs-nav {
+            display: flex;
+            padding: 0 1rem;
+            gap: 0.5rem;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 1rem;
+            background: transparent;
+            border: none;
+            color: var(--text-tertiary);
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.875rem;
+            transition: all var(--transition-fast) ease;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .tab-btn:hover {
+            color: var(--text-secondary);
+        }
+
+        .tab-btn.active {
+            color: var(--accent-secondary);
+        }
+
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 20%;
+            right: 20%;
+            height: 2px;
+            background: var(--accent-gradient);
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { transform: scaleX(0); }
+            to { transform: scaleX(1); }
+        }
+
+        .tab-icon {
+            font-size: 1.1rem;
+        }
+
+        /* Tab Content */
+        .tabs-content {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        .tab-pane {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .tab-pane.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Quick Actions Bar */
+        .quick-actions {
+            padding: 2rem 1.5rem 1rem 1.5rem;
+            background: var(--surface-primary);
+            border-bottom: 1px solid var(--border-primary);
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .quick-btn {
+            padding: 0.5rem 1rem;
+            background: var(--surface-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: var(--radius-md);
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all var(--transition-fast) ease;
+        }
+
+        .quick-btn:hover {
+            background: var(--accent-primary);
+            color: white;
+            border-color: var(--accent-primary);
+            transform: translateY(-2px);
+        }
+
+        /* Color Section */
+        .section {
+            padding: 1.5rem;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .section-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .section-action {
+            font-size: 0.75rem;
+            color: var(--accent-secondary);
+            cursor: pointer;
+            transition: color var(--transition-fast) ease;
+        }
+
+        .section-action:hover {
+            color: var(--accent-primary);
+        }
+
+        /* Color Palette Items */
+        .palette-item {
+            background: var(--surface-primary);
+            border: 1px solid var(--border-primary);
+            border-radius: var(--radius-lg);
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            cursor: pointer;
+            transition: all var(--transition-base) ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .palette-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
+            transition: left 0.6s ease;
+        }
+
+        .palette-item:hover::before {
+            left: 100%;
+        }
+
+        .palette-item:hover {
+            background: var(--surface-secondary);
+            transform: translateX(4px);
+            border-color: var(--accent-primary);
+        }
+
+        .palette-item.active {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+            border-color: var(--accent-primary);
+            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.2);
+        }
+
+        .palette-item.active::after {
+            content: '✓';
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            width: 24px;
+            height: 24px;
+            background: var(--accent-gradient);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.75rem;
+            font-weight: bold;
+            animation: scaleIn 0.3s ease;
+        }
+
+        @keyframes scaleIn {
+            from { transform: scale(0); }
+            to { transform: scale(1); }
+        }
+
+        .palette-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .palette-name {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+        }
+
+        .palette-meta {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .contrast-badge {
+            padding: 0.25rem 0.5rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.65rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            opacity: 0.4;
+            transition: opacity 0.2s ease;
+        }
+
+        .palette-item:hover .contrast-badge {
+            opacity: 1;
+        }
+
+        .contrast-badge.aa {
+            background: rgba(16, 185, 129, 0.15);
+            color: #10b981;
+        }
+
+        .contrast-badge.aaa {
+            background: rgba(59, 130, 246, 0.15);
+            color: #3b82f6;
+        }
+
+        .contrast-badge.fail {
+            background: rgba(160, 160, 184, 0.15);
+            color: #a0a0b8;
+        }
+
+        /* Text Color Controls */
+        .text-colors-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .color-input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .color-label {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            cursor: pointer;
+        }
+
+        .color-label-text {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .color-input-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem;
+            background: var(--surface-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: var(--radius-md);
+            transition: all var(--transition-fast) ease;
+        }
+
+        .color-input-wrapper:hover {
+            background: var(--surface-hover);
+            border-color: var(--accent-primary);
+        }
+
+        .color-input {
+            width: 40px;
+            height: 40px;
+            border: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            background: transparent;
+        }
+
+        .color-input::-webkit-color-swatch-wrapper {
+            padding: 0;
+        }
+
+        .color-input::-webkit-color-swatch {
+            border: 2px solid var(--border-primary);
+            border-radius: var(--radius-sm);
+        }
+
+        .color-value {
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.875rem;
+            color: var(--text-primary);
+            text-transform: uppercase;
+        }
+
+        .palette-colors {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .color-swatch {
+            flex: 1;
+            height: 48px;
+            border-radius: var(--radius-md);
+            position: relative;
+            overflow: hidden;
+            transition: all var(--transition-fast) ease;
+            cursor: pointer;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .color-swatch:hover {
+            transform: scale(1.05);
+            z-index: 2;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .color-hex {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            color: white;
+            padding: 0.25rem;
+            font-size: 0.65rem;
+            font-weight: 600;
+            text-align: center;
+            letter-spacing: 0.5px;
+            transform: translateY(100%);
+            transition: transform var(--transition-fast) ease;
+        }
+
+        .color-swatch:hover .color-hex {
+            transform: translateY(0);
+        }
+
+        /* Font Preview */
+        .font-item {
+            background: var(--surface-primary);
+            border: 1px solid var(--border-primary);
+            border-radius: var(--radius-lg);
+            padding: 1.25rem;
+            margin-bottom: 0.75rem;
+            cursor: pointer;
+            transition: all var(--transition-base) ease;
+        }
+
+        .font-item:hover {
+            background: var(--surface-secondary);
+            transform: translateX(4px);
+        }
+
+        .font-item.active {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+            border-color: var(--accent-primary);
+        }
+
+        .font-preview-heading {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+
+        .font-preview-body {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            margin-bottom: 0.75rem;
+        }
+
+        .font-info {
+            display: flex;
+            gap: 1rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid var(--border-secondary);
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+        }
+
+        /* Controls */
+        .control-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .control-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .control-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+        }
+
+        .control-value {
+            color: var(--accent-secondary);
+            font-weight: 500;
+            font-size: 0.85rem;
+        }
+
+        .control-description {
+            color: var(--text-tertiary);
+            font-size: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Slider */
+        .slider-container {
+            position: relative;
+            padding: 0.5rem 0;
+        }
+
+        .slider {
+            width: 100%;
+            height: 6px;
+            background: var(--surface-secondary);
+            border-radius: 3px;
+            outline: none;
+            cursor: pointer;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            background: var(--accent-gradient);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+            transition: all var(--transition-fast) ease;
+        }
+
+        .slider::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.5);
+        }
+
+        .slider-ticks {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 0.5rem;
+        }
+
+        .slider-tick {
+            font-size: 0.7rem;
+            color: var(--text-tertiary);
+        }
+
+        /* Option Grid */
+        .option-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.5rem;
+        }
+
+        .option-btn {
+            padding: 0.75rem;
+            background: var(--surface-primary);
+            border: 1px solid var(--border-primary);
+            border-radius: var(--radius-md);
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all var(--transition-fast) ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .option-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: var(--accent-gradient);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: all 0.4s ease;
+            opacity: 0.3;
+        }
+
+        .option-btn:hover {
+            background: var(--surface-hover);
+            color: var(--text-primary);
+            border-color: var(--accent-primary);
+        }
+
+        .option-btn.active {
+            background: var(--accent-primary);
+            color: white;
+            border-color: var(--accent-primary);
+        }
+
+        .option-btn.active::before {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Export Section */
+        .export-section {
+            padding: 1.5rem;
+            background: var(--bg-tertiary);
+            border-top: 1px solid var(--border-primary);
+        }
+
+        .export-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+        }
+
+        .export-btn {
+            padding: 0.75rem;
+            background: var(--surface-primary);
+            border: 1px solid var(--border-primary);
+            border-radius: var(--radius-md);
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all var(--transition-fast) ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .export-btn:hover {
+            background: var(--accent-gradient);
+            color: white;
+            border-color: transparent;
+            transform: translateY(-2px);
+        }
+
+        .export-btn.primary {
+            grid-column: span 2;
+            background: var(--accent-gradient);
+            color: white;
+            border: none;
+        }
+
+        /* Preview Panel */
+        .preview-panel {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            background: white;
+        }
+
+        .preview-panel-header {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            background: var(--surface-primary);
+            border-bottom: 1px solid var(--border-primary);
+            gap: 0.75rem;
+        }
+
+        .preview-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .preview-url-section {
+            display: flex;
+            gap: 0.5rem;
+            flex: 1 1 100%;
+            align-items: center;
+        }
+
+        .preview-url-input {
+            flex: 1;
+            padding: 0.5rem 0.75rem;
+            background: var(--surface-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+        }
+
+        .preview-url-input:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            background: var(--surface-primary);
+        }
+
+        .preview-url-input::placeholder {
+            color: var(--text-tertiary);
+        }
+
+        .preview-url-btn {
+            padding: 0.5rem 1rem;
+            background: var(--accent-primary);
+            color: white;
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .preview-url-btn:hover {
+            background: var(--accent-secondary);
+            transform: translateY(-1px);
+        }
+
+        .preview-url-btn:active {
+            transform: translateY(0);
+        }
+
+        .preview-controls {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .preview-btn {
+            width: 36px;
+            height: 36px;
+            background: var(--surface-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: all var(--transition-fast) ease;
+        }
+
+        .preview-btn:hover {
+            background: var(--surface-hover);
+            color: var(--accent-primary);
+            border-color: var(--accent-primary);
+            transform: translateY(-1px);
+        }
+
+        .preview-btn.active {
+            background: var(--accent-primary);
+            color: white;
+            border-color: var(--accent-primary);
+        }
+
+        .preview-frame {
+            width: 100%;
+            height: 100%;
+            overflow-y: auto;
+            transition: all var(--transition-base) ease;
+        }
+
+        .preview-frame.dark {
+            background: #1a1a1a;
+            color: white;
+        }
+
+        /* Modern Website Styles */
+        .modern-nav {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 3rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            transition: all var(--transition-base) ease;
+        }
+
+        .dark .modern-nav {
+            background: rgba(26, 26, 26, 0.95);
+            border-bottom-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-logo {
+            font-family: var(--font-heading);
+            font-size: 1.5rem;
+            font-weight: 800;
+            transition: color var(--transition-base) ease;
+            cursor: pointer;
+        }
+
+        /* Page content styles */
+        .page-content {
+            animation: fadeIn 0.3s ease;
+        }
+
+        #pageContent {
+            position: relative;
+            min-height: 100vh;
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+            align-items: center;
+        }
+
+        .nav-link {
+            font-family: var(--font-body);
+            color: inherit;
+            opacity: 0.7;
+            text-decoration: none;
+            font-weight: var(--weight-medium);
+            transition: all var(--transition-fast) ease;
+            position: relative;
+        }
+
+        .nav-link:hover {
+            opacity: 1;
+        }
+
+        .nav-link.active {
+            opacity: 1;
+            color: var(--accent-primary);
+            position: relative;
+        }
+
+        .nav-link.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--accent-gradient);
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: currentColor;
+            transform: scaleX(0);
+            transition: transform var(--transition-fast) ease;
+        }
+
+        .nav-link:hover::after {
+            transform: scaleX(1);
+        }
+
+        .nav-cta {
+            padding: 0.6rem 1.5rem;
+            background: var(--accent-gradient);
+            color: white;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            transition: all var(--transition-base) ease;
+            text-decoration: none;
+        }
+
+        .nav-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
+        }
+
+        .hero-section {
+            min-height: 90vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: calc(var(--spacing-unit) * 6);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-content {
+            max-width: 900px;
+            text-align: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        .hero-title {
+            font-family: var(--font-heading);
+            font-size: calc(var(--size-base) * 3.5);
+            font-weight: 900;
+            color: white;
+            margin-bottom: 1.5rem;
+            line-height: 1.1;
+            letter-spacing: -1px;
+        }
+
+        .hero-subtitle {
+            font-family: var(--font-body);
+            font-size: calc(var(--size-base) * 1.25);
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 2.5rem;
+            line-height: var(--line-height);
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: calc(var(--spacing-unit) * 1.5) calc(var(--spacing-unit) * 3);
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 1rem;
+            font-weight: var(--weight-bold);
+            cursor: pointer;
+            transition: all var(--transition-base) ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: white;
+            color: #6366f1;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: white;
+        }
+
+        .features-section {
+            padding: calc(var(--spacing-unit) * 8);
+            background: #f8f9fb;
+            transition: background var(--transition-base) ease;
+        }
+
+        .dark .features-section {
+            background: #111111;
+        }
+
+        .section-header-center {
+            text-align: center;
+            max-width: 700px;
+            margin: 0 auto calc(var(--spacing-unit) * 6);
+        }
+
+        .section-title-lg {
+            font-family: var(--font-heading);
+            font-size: calc(var(--size-base) * 2.5);
+            font-weight: var(--weight-bold);
+            color: inherit;
+            margin-bottom: 1rem;
+        }
+
+        .section-subtitle {
+            font-family: var(--font-body);
+            font-size: calc(var(--size-base) * 1.1);
+            color: inherit;
+            opacity: 0.7;
+            line-height: var(--line-height);
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .feature-card {
+            background: white;
+            padding: calc(var(--spacing-unit) * 4);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            transition: all var(--transition-base) ease;
+        }
+
+        .dark .feature-card {
+            background: #1a1a1a;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .feature-icon {
+            width: 60px;
+            height: 60px;
+            background: var(--accent-gradient);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .feature-title {
+            font-family: var(--font-heading);
+            font-size: calc(var(--size-base) * 1.25);
+            font-weight: var(--weight-bold);
+            color: inherit;
+            margin-bottom: 0.75rem;
+        }
+
+        .feature-text {
+            font-family: var(--font-body);
+            color: inherit;
+            opacity: 0.7;
+            line-height: var(--line-height);
+        }
+
+        /* Notifications */
+        .notification {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            padding: 1rem 2rem;
+            background: var(--accent-gradient);
+            color: white;
+            border-radius: var(--radius-lg);
+            font-weight: 600;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .notification.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        .notification-icon {
+            font-size: 1.25rem;
+        }
+
+        /* Loading State */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Tooltips */
+        .tooltip {
+            position: relative;
+        }
+
+        .tooltip-content {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%) translateY(-8px);
+            padding: 0.5rem 0.75rem;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            border-radius: var(--radius-md);
+            font-size: 0.75rem;
+            white-space: nowrap;
+            pointer-events: none;
+            opacity: 0;
+            transition: all var(--transition-fast) ease;
+        }
+
+        .tooltip:hover .tooltip-content {
+            opacity: 1;
+        }
+
+        /* Keyboard Shortcuts Modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-content {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: var(--radius-xl);
+            padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+
+        .modal.show .modal-content {
+            transform: scale(1);
+        }
+
+        .modal-header {
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .modal-subtitle {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .modal-body {
+            padding: 1.5rem 0;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.75rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border-primary);
+        }
+
+        .input-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .input-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: var(--surface-primary);
+            border: 1px solid var(--border-primary);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            font-family: var(--font-body);
+            font-size: 0.9rem;
+            transition: all var(--transition-fast) ease;
+            resize: vertical;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            background: var(--surface-secondary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .input-field::placeholder {
+            color: var(--text-tertiary);
+        }
+
+        /* Saved Designs List */
+        .saved-designs-list {
+            display: grid;
+            gap: 1rem;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .saved-design-card {
+            padding: 1rem;
+            background: var(--surface-primary);
+            border: 1px solid var(--border-primary);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all var(--transition-fast) ease;
+            display: flex;
+            gap: 1rem;
+        }
+
+        .saved-design-card:hover {
+            background: var(--surface-secondary);
+            border-color: var(--accent-primary);
+            transform: translateY(-2px);
+        }
+
+        .design-preview-colors {
+            display: flex;
+            gap: 0.25rem;
+            flex-shrink: 0;
+        }
+
+        .design-preview-color {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            border: 1px solid var(--border-primary);
+        }
+
+        .design-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .design-info-name {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .design-info-meta {
+            font-size: 0.8rem;
+            color: var(--text-tertiary);
+        }
+
+        .design-actions-btns {
+            display: flex;
+            gap: 0.5rem;
+            flex-shrink: 0;
+        }
+
+        .design-action-icon {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--surface-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all var(--transition-fast) ease;
+        }
+
+        .design-action-icon:hover {
+            background: var(--accent-primary);
+            border-color: var(--accent-primary);
+            color: white;
+        }
+
+        .empty-state {
+            padding: 3rem 1rem;
+            text-align: center;
+            color: var(--text-tertiary);
+        }
+
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            border: none;
+            transition: all var(--transition-fast) ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: var(--accent-gradient);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-secondary {
+            background: var(--surface-secondary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-primary);
+        }
+
+        .btn-secondary:hover {
+            background: var(--surface-hover);
+            border-color: var(--accent-primary);
+        }
+
+        .shortcuts-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .shortcut-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            background: var(--surface-primary);
+            border-radius: var(--radius-md);
+        }
+
+        .shortcut-desc {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .shortcut-key {
+            display: flex;
+            gap: 0.25rem;
+        }
+
+        .key {
+            padding: 0.25rem 0.5rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-primary);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .control-panel {
+                width: 420px;
+            }
+
+            .features-grid {
+                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            }
+        }
+
+        @media (max-width: 768px) {
+            .app-container {
+                flex-direction: column;
+            }
+
+            .control-panel {
+                width: 100%;
+                height: 50vh;
+                border-right: none;
+                border-bottom: 1px solid var(--border-primary);
+            }
+
+            .preview-panel {
+                height: 50vh;
+            }
+
+            .hero-title {
+                font-size: calc(var(--size-base) * 2.5);
+            }
+
+            .nav-menu {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Background Animation -->
+    <div class="bg-animation"></div>
+
+    <!-- Main App Container -->
+    <div class="app-container">
+        <!-- Control Panel -->
+        <div class="control-panel" id="controlPanel">
+            <!-- Header -->
+            <div class="panel-header">
+                <div class="header-content">
+                    <div class="logo-section">
+                        <div class="logo-icon">🎨</div>
+                        <div>
+                            <div class="app-title">VANGUARD</div>
+                            <div class="app-version">Design System Studio v2.0</div>
+                        </div>
+                    </div>
+                    <div class="header-actions">
+                        <button class="icon-btn tooltip" onclick="showSaveModal()">
+                            <span>💾</span>
+                            <span class="tooltip-content">Save Design</span>
+                        </button>
+                        <button class="icon-btn tooltip" onclick="showLoadModal()">
+                            <span>📂</span>
+                            <span class="tooltip-content">Load Design</span>
+                        </button>
+                        <button class="icon-btn tooltip" onclick="toggleDarkMode()">
+                            <span id="themeIcon">🌙</span>
+                            <span class="tooltip-content">Toggle Theme</span>
+                        </button>
+                        <button class="icon-btn tooltip" onclick="showKeyboardShortcuts()">
+                            <span>⌨️</span>
+                            <span class="tooltip-content">Keyboard Shortcuts</span>
+                        </button>
+
+                        <!-- User Profile Button with Dropdown -->
+                        <div class="user-profile-btn" id="userProfileBtn" onclick="toggleUserDropdown()">
+                            <div class="user-profile-avatar" id="userProfileAvatar">
+                                👤
+                            </div>
+                            <div class="user-profile-name" id="userProfileName">Sign In</div>
+
+                            <!-- Dropdown Menu -->
+                            <div class="user-dropdown" id="userDropdown">
+                                <div class="user-dropdown-header">
+                                    <div class="user-profile-name" id="dropdownUserName">Guest</div>
+                                    <div class="user-dropdown-email" id="dropdownUserEmail">Not signed in</div>
+                                </div>
+                                <div class="user-dropdown-menu">
+                                    <button class="user-dropdown-item" id="dropdown-signin" onclick="event.stopPropagation(); showCommunityLogin()">
+                                        <span class="user-dropdown-icon">🔐</span>
+                                        <span class="user-dropdown-text">Community Login</span>
+                                    </button>
+                                    <button class="user-dropdown-item danger" id="dropdown-logout" onclick="event.stopPropagation(); communityLogout(); closeUserDropdown()" style="display: none;">
+                                        <span class="user-dropdown-icon">🚪</span>
+                                        <span class="user-dropdown-text">Logout</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button class="icon-btn tooltip" onclick="togglePanel()">
+                            <span>◀</span>
+                            <span class="tooltip-content">Collapse Panel</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="quick-actions">
+                <button class="quick-btn" onclick="applyPreset('minimal')">Minimal</button>
+                <button class="quick-btn" onclick="applyPreset('bold')">Bold</button>
+                <button class="quick-btn" onclick="applyPreset('playful')">Playful</button>
+                <button class="quick-btn" onclick="applyPreset('corporate')">Corporate</button>
+                <button class="quick-btn" onclick="applyPreset('dark')">Dark Mode</button>
+            </div>
+
+            <!-- Tabs -->
+            <div class="tabs-container">
+                <div class="tabs-nav">
+                    <button class="tab-btn active" onclick="switchTab('colors')">
+                        <span class="tab-icon">🎨</span>
+                        Colors
+                    </button>
+                    <button class="tab-btn" onclick="switchTab('typography')">
+                        <span class="tab-icon">✍️</span>
+                        Typography
+                    </button>
+                    <button class="tab-btn" onclick="switchTab('layout')">
+                        <span class="tab-icon">📐</span>
+                        Layout
+                    </button>
+                    <button class="tab-btn" onclick="switchTab('effects')">
+                        <span class="tab-icon">✨</span>
+                        Effects
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tab Content -->
+            <div class="tabs-content">
+                <!-- Colors Tab -->
+                <div class="tab-pane active" id="tab-colors">
+                    <div class="section">
+                        <div class="section-header">
+                            <div class="section-title">Color Palettes</div>
+                            <div class="section-action" onclick="generatePalettes()">Generate New</div>
+                        </div>
+                        <div id="palettesContainer"></div>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-header">
+                            <div class="section-title">Text Colors</div>
+                            <div class="section-action" onclick="resetTextColors()">Reset</div>
+                        </div>
+                        <div class="text-colors-grid">
+                            <div class="color-input-group">
+                                <label class="color-label">
+                                    <span class="color-label-text">Headings</span>
+                                    <div class="color-input-wrapper">
+                                        <input type="color" id="headingColor" class="color-input" value="#000000" onchange="updateTextColor('heading', this.value)">
+                                        <span class="color-value" id="headingColorValue">#000000</span>
+                                    </div>
+                                </label>
+                            </div>
+                            <div class="color-input-group">
+                                <label class="color-label">
+                                    <span class="color-label-text">Body Text</span>
+                                    <div class="color-input-wrapper">
+                                        <input type="color" id="bodyColor" class="color-input" value="#333333" onchange="updateTextColor('body', this.value)">
+                                        <span class="color-value" id="bodyColorValue">#333333</span>
+                                    </div>
+                                </label>
+                            </div>
+                            <div class="color-input-group">
+                                <label class="color-label">
+                                    <span class="color-label-text">Links</span>
+                                    <div class="color-input-wrapper">
+                                        <input type="color" id="linkColor" class="color-input" value="#0066cc" onchange="updateTextColor('link', this.value)">
+                                        <span class="color-value" id="linkColorValue">#0066cc</span>
+                                    </div>
+                                </label>
+                            </div>
+                            <div class="color-input-group">
+                                <label class="color-label">
+                                    <span class="color-label-text">Muted Text</span>
+                                    <div class="color-input-wrapper">
+                                        <input type="color" id="mutedColor" class="color-input" value="#666666" onchange="updateTextColor('muted', this.value)">
+                                        <span class="color-value" id="mutedColorValue">#666666</span>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Typography Tab -->
+                <div class="tab-pane" id="tab-typography">
+                    <div class="section">
+                        <div class="section-header">
+                            <div class="section-title">Font Combinations</div>
+                        </div>
+                        <div id="fontsContainer"></div>
+
+                        <div class="control-group">
+                            <div class="control-label">
+                                <span class="control-title">Base Font Size</span>
+                                <span class="control-value" id="sizeValue">16px</span>
+                            </div>
+                            <div class="slider-container">
+                                <input type="range" class="slider" id="sizeSlider" min="12" max="20" value="16" oninput="updateSize()">
+                                <div class="slider-ticks">
+                                    <span class="slider-tick">12px</span>
+                                    <span class="slider-tick">16px</span>
+                                    <span class="slider-tick">20px</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="control-group">
+                            <div class="control-label">
+                                <span class="control-title">Line Height</span>
+                                <span class="control-value" id="lineValue">1.6</span>
+                            </div>
+                            <div class="slider-container">
+                                <input type="range" class="slider" id="lineSlider" min="1.2" max="2" step="0.1" value="1.6" oninput="updateLineHeight()">
+                                <div class="slider-ticks">
+                                    <span class="slider-tick">Tight</span>
+                                    <span class="slider-tick">Normal</span>
+                                    <span class="slider-tick">Loose</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Layout Tab -->
+                <div class="tab-pane" id="tab-layout">
+                    <div class="section">
+                        <div class="control-group">
+                            <div class="control-label">
+                                <span class="control-title">Spacing Unit</span>
+                                <span class="control-value" id="spacingValue">8px</span>
+                            </div>
+                            <div class="slider-container">
+                                <input type="range" class="slider" id="spacingSlider" min="4" max="16" value="8" oninput="updateSpacing()">
+                                <div class="slider-ticks">
+                                    <span class="slider-tick">Compact</span>
+                                    <span class="slider-tick">Normal</span>
+                                    <span class="slider-tick">Spacious</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="control-group">
+                            <div class="control-label">
+                                <span class="control-title">Border Radius</span>
+                            </div>
+                            <div class="option-grid">
+                                <button class="option-btn" onclick="setBorderRadius('sharp')">Sharp</button>
+                                <button class="option-btn active" onclick="setBorderRadius('rounded')">Rounded</button>
+                                <button class="option-btn" onclick="setBorderRadius('pill')">Pill</button>
+                            </div>
+                        </div>
+
+                        <div class="control-group">
+                            <div class="control-label">
+                                <span class="control-title">Container Width</span>
+                            </div>
+                            <div class="option-grid">
+                                <button class="option-btn" onclick="setWidth('narrow')">Narrow</button>
+                                <button class="option-btn active" onclick="setWidth('normal')">Normal</button>
+                                <button class="option-btn" onclick="setWidth('wide')">Wide</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Effects Tab -->
+                <div class="tab-pane" id="tab-effects">
+                    <div class="section">
+                        <div class="control-group">
+                            <div class="control-label">
+                                <span class="control-title">Shadow Intensity</span>
+                            </div>
+                            <div class="option-grid">
+                                <button class="option-btn" onclick="setShadow('none')">None</button>
+                                <button class="option-btn active" onclick="setShadow('subtle')">Subtle</button>
+                                <button class="option-btn" onclick="setShadow('strong')">Strong</button>
+                            </div>
+                        </div>
+
+                        <div class="control-group">
+                            <div class="control-label">
+                                <span class="control-title">Animation Speed</span>
+                                <span class="control-value" id="animValue">300ms</span>
+                            </div>
+                            <div class="slider-container">
+                                <input type="range" class="slider" id="animSlider" min="100" max="600" step="50" value="300" oninput="updateAnimation()">
+                                <div class="slider-ticks">
+                                    <span class="slider-tick">Fast</span>
+                                    <span class="slider-tick">Normal</span>
+                                    <span class="slider-tick">Slow</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="control-group">
+                            <div class="control-label">
+                                <span class="control-title">Visual Effects</span>
+                            </div>
+                            <div class="option-grid">
+                                <button class="option-btn" onclick="toggleEffect('blur')">Blur</button>
+                                <button class="option-btn" onclick="toggleEffect('gradient')">Gradients</button>
+                                <button class="option-btn" onclick="toggleEffect('glow')">Glow</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Export Section -->
+            <div class="export-section">
+                <div class="export-grid">
+                    <button class="export-btn primary" onclick="exportDesignSystem()">
+                        <span>📦</span>
+                        Export Complete Design System
+                    </button>
+                    <button class="export-btn" onclick="exportCSS()">
+                        <span>🎨</span>
+                        CSS Variables
+                    </button>
+                    <button class="export-btn" onclick="exportJSON()">
+                        <span>📄</span>
+                        JSON Tokens
+                    </button>
+                    <button class="export-btn" onclick="saveConfig()">
+                        <span>💾</span>
+                        Save Config
+                    </button>
+                    <button class="export-btn" onclick="loadConfig()">
+                        <span>📂</span>
+                        Load Config
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Preview Panel -->
+        <div class="preview-panel">
+            <div class="preview-panel-header">
+                <div class="preview-title">Website Preview</div>
+                <div class="preview-url-section">
+                    <input type="text" class="preview-url-input" id="previewUrlInput" placeholder="Enter website URL (e.g., https://example.com)" />
+                    <button class="preview-url-btn" onclick="loadExternalWebsite()" title="Load Website">🌐 Load</button>
+                    <button class="preview-url-btn" onclick="resetToDefaultPreview()" title="Reset to Default">↺ Reset</button>
+                </div>
+                <div class="preview-controls">
+                    <button class="preview-btn" id="previewDesktop" onclick="setPreviewMode('desktop')" title="Desktop View">💻</button>
+                    <button class="preview-btn" id="previewTablet" onclick="setPreviewMode('tablet')" title="Tablet View">📱</button>
+                    <button class="preview-btn" id="previewMobile" onclick="setPreviewMode('mobile')" title="Mobile View">📱</button>
+                    <button class="preview-btn" id="previewDark" onclick="togglePreviewDark()" title="Toggle Dark Mode">🌙</button>
+                    <button class="preview-btn" onclick="refreshPreview()" title="Refresh Preview">🔄</button>
+                </div>
+            </div>
+
+            <div class="preview-frame" id="previewFrame">
+                <!-- Navigation -->
+                <nav class="modern-nav">
+                    <div class="nav-logo" onclick="navigateToPage('home')">Studio</div>
+                    <ul class="nav-menu">
+                        <li><a href="#" class="nav-link active" onclick="event.preventDefault(); navigateToPage('home')">Home</a></li>
+                        <li><a href="#" class="nav-link" onclick="event.preventDefault(); navigateToPage('products')">Products</a></li>
+                        <li><a href="#" class="nav-link" onclick="event.preventDefault(); navigateToPage('solutions')">Solutions</a></li>
+                        <li><a href="#" class="nav-link" onclick="event.preventDefault(); navigateToPage('resources')">Resources</a></li>
+                        <li><a href="#" class="nav-link" onclick="event.preventDefault(); navigateToPage('pricing')">Pricing</a></li>
+                        <li><a href="#" class="nav-cta">Get Started</a></li>
+                    </ul>
+                </nav>
+
+                <!-- Page Content Container -->
+                <div id="pageContent">
+                    <!-- Home Page -->
+                    <div class="page-content" id="page-home" style="display: block;">
+                        <!-- Hero -->
+                        <section class="hero-section">
+                            <div class="hero-content">
+                                <h1 class="hero-title">Build Something Amazing</h1>
+                                <p class="hero-subtitle">Create beautiful, responsive websites with our powerful design system that adapts to your unique vision.</p>
+                                <div class="hero-buttons">
+                                    <button class="btn btn-primary">Start Free Trial</button>
+                                    <button class="btn btn-secondary">Learn More</button>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- Features -->
+                        <section class="features-section">
+                            <div class="section-header-center">
+                                <h2 class="section-title-lg">Why Choose Us?</h2>
+                                <p class="section-subtitle">Everything you need to succeed in one platform</p>
+                            </div>
+                            <div class="features-grid">
+                                <div class="feature-card">
+                                    <div class="feature-icon">⚡</div>
+                                    <h3 class="feature-title">Lightning Fast</h3>
+                                    <p class="feature-text">Optimized for speed with sub-second load times and instant interactions.</p>
+                                </div>
+                                <div class="feature-card">
+                                    <div class="feature-icon">🎨</div>
+                                    <h3 class="feature-title">Beautiful Design</h3>
+                                    <p class="feature-text">Stunning interfaces that captivate users and enhance their experience.</p>
+                                </div>
+                                <div class="feature-card">
+                                    <div class="feature-icon">🔒</div>
+                                    <h3 class="feature-title">Secure & Reliable</h3>
+                                    <p class="feature-text">Enterprise-grade security with 99.9% uptime guarantee.</p>
+                                </div>
+                            </div>
+                        </section>
+                    </div>
+
+                    <!-- Products Page -->
+                    <div class="page-content" id="page-products" style="display: none;">
+                        <section class="hero-section" style="min-height: 60vh;">
+                            <div class="hero-content">
+                                <h1 class="hero-title">Our Products</h1>
+                                <p class="hero-subtitle">Powerful tools designed for modern teams and workflows.</p>
+                            </div>
+                        </section>
+                        <section class="features-section">
+                            <div class="features-grid">
+                                <div class="feature-card">
+                                    <div class="feature-icon">💼</div>
+                                    <h3 class="feature-title">Enterprise Suite</h3>
+                                    <p class="feature-text">Complete solution for large organizations with advanced security and scalability.</p>
+                                    <button class="btn btn-primary" style="margin-top: 1rem;">Learn More</button>
+                                </div>
+                                <div class="feature-card">
+                                    <div class="feature-icon">🚀</div>
+                                    <h3 class="feature-title">Startup Edition</h3>
+                                    <p class="feature-text">Streamlined tools perfect for growing teams and rapid deployment.</p>
+                                    <button class="btn btn-primary" style="margin-top: 1rem;">Learn More</button>
+                                </div>
+                                <div class="feature-card">
+                                    <div class="feature-icon">👤</div>
+                                    <h3 class="feature-title">Personal Pro</h3>
+                                    <p class="feature-text">Professional features for individual creators and freelancers.</p>
+                                    <button class="btn btn-primary" style="margin-top: 1rem;">Learn More</button>
+                                </div>
+                            </div>
+                        </section>
+                    </div>
+
+                    <!-- Solutions Page -->
+                    <div class="page-content" id="page-solutions" style="display: none;">
+                        <section class="hero-section" style="min-height: 60vh;">
+                            <div class="hero-content">
+                                <h1 class="hero-title">Solutions</h1>
+                                <p class="hero-subtitle">Tailored solutions for every industry and use case.</p>
+                            </div>
+                        </section>
+                        <section class="features-section">
+                            <div class="features-grid">
+                                <div class="feature-card">
+                                    <div class="feature-icon">🏢</div>
+                                    <h3 class="feature-title">E-commerce</h3>
+                                    <p class="feature-text">Build and scale your online store with integrated payment processing.</p>
+                                </div>
+                                <div class="feature-card">
+                                    <div class="feature-icon">📊</div>
+                                    <h3 class="feature-title">Analytics</h3>
+                                    <p class="feature-text">Data-driven insights to understand and grow your business.</p>
+                                </div>
+                                <div class="feature-card">
+                                    <div class="feature-icon">🤝</div>
+                                    <h3 class="feature-title">Collaboration</h3>
+                                    <p class="feature-text">Real-time tools for seamless team collaboration.</p>
+                                </div>
+                                <div class="feature-card">
+                                    <div class="feature-icon">🔧</div>
+                                    <h3 class="feature-title">Automation</h3>
+                                    <p class="feature-text">Streamline workflows and reduce manual tasks.</p>
+                                </div>
+                                <div class="feature-card">
+                                    <div class="feature-icon">📱</div>
+                                    <h3 class="feature-title">Mobile First</h3>
+                                    <p class="feature-text">Responsive solutions optimized for mobile devices.</p>
+                                </div>
+                                <div class="feature-card">
+                                    <div class="feature-icon">🌐</div>
+                                    <h3 class="feature-title">Global Scale</h3>
+                                    <p class="feature-text">Infrastructure that grows with your international presence.</p>
+                                </div>
+                            </div>
+                        </section>
+                    </div>
+
+                    <!-- Resources Page -->
+                    <div class="page-content" id="page-resources" style="display: none;">
+                        <section class="hero-section" style="min-height: 60vh;">
+                            <div class="hero-content">
+                                <h1 class="hero-title">Resources</h1>
+                                <p class="hero-subtitle">Everything you need to get started and succeed.</p>
+                            </div>
+                        </section>
+                        <section class="features-section">
+                            <div class="features-grid">
+                                <div class="feature-card">
+                                    <div class="feature-icon">📚</div>
+                                    <h3 class="feature-title">Documentation</h3>
+                                    <p class="feature-text">Comprehensive guides and API references for developers.</p>
+                                    <button class="btn btn-secondary" style="margin-top: 1rem;">Browse Docs</button>
+                                </div>
+                                <div class="feature-card">
+                                    <div class="feature-icon">🎓</div>
+                                    <h3 class="feature-title">Tutorials</h3>
+                                    <p class="feature-text">Step-by-step tutorials to master every feature.</p>
+                                    <button class="btn btn-secondary" style="margin-top: 1rem;">Start Learning</button>
+                                </div>
+                                <div class="feature-card">
+                                    <div class="feature-icon">📹</div>
+                                    <h3 class="feature-title">Video Courses</h3>
+                                    <p class="feature-text">Expert-led video training for all skill levels.</p>
+                                    <button class="btn btn-secondary" style="margin-top: 1rem;">Watch Now</button>
+                                </div>
+                                <div class="feature-card">
+                                    <div class="feature-icon">💬</div>
+                                    <h3 class="feature-title">Community</h3>
+                                    <p class="feature-text">Join thousands of developers in our active community.</p>
+                                    <button class="btn btn-secondary" style="margin-top: 1rem;">Join Community</button>
+                                </div>
+                                <div class="feature-card">
+                                    <div class="feature-icon">🛠️</div>
+                                    <h3 class="feature-title">Developer Tools</h3>
+                                    <p class="feature-text">SDKs, plugins, and integrations for your stack.</p>
+                                    <button class="btn btn-secondary" style="margin-top: 1rem;">Download Tools</button>
+                                </div>
+                                <div class="feature-card">
+                                    <div class="feature-icon">📰</div>
+                                    <h3 class="feature-title">Blog</h3>
+                                    <p class="feature-text">Latest updates, tips, and industry insights.</p>
+                                    <button class="btn btn-secondary" style="margin-top: 1rem;">Read Blog</button>
+                                </div>
+                            </div>
+                        </section>
+                    </div>
+
+                    <!-- Pricing Page -->
+                    <div class="page-content" id="page-pricing" style="display: none;">
+                        <section class="hero-section" style="min-height: 60vh;">
+                            <div class="hero-content">
+                                <h1 class="hero-title">Simple, Transparent Pricing</h1>
+                                <p class="hero-subtitle">Choose the plan that's right for your team.</p>
+                            </div>
+                        </section>
+                        <section class="features-section">
+                            <div class="features-grid">
+                                <div class="feature-card">
+                                    <div class="feature-icon">🎯</div>
+                                    <h3 class="feature-title">Starter</h3>
+                                    <div style="font-size: 2rem; margin: 1rem 0; color: var(--accent-primary);">$9/mo</div>
+                                    <p class="feature-text">Perfect for individuals and small projects.</p>
+                                    <ul style="text-align: left; margin: 1rem 0; padding-left: 1.5rem;">
+                                        <li>5 Projects</li>
+                                        <li>1GB Storage</li>
+                                        <li>Basic Support</li>
+                                        <li>Core Features</li>
+                                    </ul>
+                                    <button class="btn btn-secondary" style="margin-top: 1rem;">Start Trial</button>
+                                </div>
+                                <div class="feature-card" style="border: 2px solid var(--accent-primary);">
+                                    <div class="feature-icon">⭐</div>
+                                    <h3 class="feature-title">Professional</h3>
+                                    <div style="font-size: 2rem; margin: 1rem 0; color: var(--accent-primary);">$29/mo</div>
+                                    <p class="feature-text">Best for growing teams and businesses.</p>
+                                    <ul style="text-align: left; margin: 1rem 0; padding-left: 1.5rem;">
+                                        <li>Unlimited Projects</li>
+                                        <li>10GB Storage</li>
+                                        <li>Priority Support</li>
+                                        <li>Advanced Features</li>
+                                        <li>Team Collaboration</li>
+                                    </ul>
+                                    <button class="btn btn-primary" style="margin-top: 1rem;">Start Trial</button>
+                                </div>
+                                <div class="feature-card">
+                                    <div class="feature-icon">🚀</div>
+                                    <h3 class="feature-title">Enterprise</h3>
+                                    <div style="font-size: 2rem; margin: 1rem 0; color: var(--accent-primary);">Custom</div>
+                                    <p class="feature-text">Tailored solutions for large organizations.</p>
+                                    <ul style="text-align: left; margin: 1rem 0; padding-left: 1.5rem;">
+                                        <li>Unlimited Everything</li>
+                                        <li>Dedicated Support</li>
+                                        <li>Custom Integrations</li>
+                                        <li>SLA Guarantee</li>
+                                        <li>On-premise Option</li>
+                                    </ul>
+                                    <button class="btn btn-secondary" style="margin-top: 1rem;">Contact Sales</button>
+                                </div>
+                            </div>
+                        </section>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Keyboard Shortcuts Modal -->
+    <div class="modal" id="shortcutsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Keyboard Shortcuts</h2>
+                <p class="modal-subtitle">Speed up your workflow with these shortcuts</p>
+            </div>
+            <div class="shortcuts-list">
+                <div class="shortcut-item">
+                    <span class="shortcut-desc">Generate new palettes</span>
+                    <div class="shortcut-key">
+                        <span class="key">Ctrl</span>
+                        <span class="key">G</span>
+                    </div>
+                </div>
+                <div class="shortcut-item">
+                    <span class="shortcut-desc">Export design system</span>
+                    <div class="shortcut-key">
+                        <span class="key">Ctrl</span>
+                        <span class="key">E</span>
+                    </div>
+                </div>
+                <div class="shortcut-item">
+                    <span class="shortcut-desc">Toggle dark mode</span>
+                    <div class="shortcut-key">
+                        <span class="key">Ctrl</span>
+                        <span class="key">D</span>
+                    </div>
+                </div>
+                <div class="shortcut-item">
+                    <span class="shortcut-desc">Save configuration</span>
+                    <div class="shortcut-key">
+                        <span class="key">Ctrl</span>
+                        <span class="key">S</span>
+                    </div>
+                </div>
+                <div class="shortcut-item">
+                    <span class="shortcut-desc">Load configuration</span>
+                    <div class="shortcut-key">
+                        <span class="key">Ctrl</span>
+                        <span class="key">O</span>
+                    </div>
+                </div>
+                <div class="shortcut-item">
+                    <span class="shortcut-desc">Collapse panel</span>
+                    <div class="shortcut-key">
+                        <span class="key">Ctrl</span>
+                        <span class="key">\</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Save Design Modal -->
+    <div class="modal" id="saveModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Save Design</h2>
+                <p class="modal-subtitle">Save your design system configuration</p>
+            </div>
+            <div class="modal-body">
+                <div class="input-group">
+                    <label class="input-label">Design Name</label>
+                    <input type="text" class="input-field" id="designName" placeholder="My Awesome Design" />
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Description (Optional)</label>
+                    <textarea class="input-field" id="designDescription" placeholder="Describe your design system..." rows="3"></textarea>
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Tags (Optional)</label>
+                    <input type="text" class="input-field" id="designTags" placeholder="modern, colorful, minimal" />
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModalById('saveModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="saveCurrentDesign()">Save Design</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load Design Modal -->
+    <div class="modal" id="loadModal">
+        <div class="modal-content" style="max-width: 700px;">
+            <div class="modal-header">
+                <h2 class="modal-title">My Saved Designs</h2>
+                <p class="modal-subtitle">Load a previously saved design system</p>
+            </div>
+            <div class="modal-body">
+                <div id="savedDesignsList" class="saved-designs-list">
+                    <!-- Saved designs will be populated here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModalById('loadModal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Menu Modal -->
+    <div class="modal" id="userMenuModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Account</h2>
+                <p class="modal-subtitle" id="userEmail">Not signed in</p>
+            </div>
+            <div class="modal-body">
+                <div id="clerkSetupInfo" style="display: block;">
+                    <div style="padding: 1rem; background: var(--surface-primary); border-radius: var(--radius-md); border: 1px solid var(--border-primary); margin-bottom: 1rem;">
+                        <div style="font-weight: 600; margin-bottom: 0.5rem; color: var(--accent-primary);">🔐 Setup Clerk Authentication</div>
+                        <ol style="margin-left: 1.5rem; color: var(--text-secondary); font-size: 0.9rem; line-height: 1.8;">
+                            <li>Go to <a href="https://clerk.com" target="_blank" style="color: var(--accent-primary);">clerk.com</a> and sign up</li>
+                            <li>Create a new application</li>
+                            <li>Copy your <strong>Publishable Key</strong></li>
+                            <li>Paste it below and click "Save"</li>
+                        </ol>
+                    </div>
+                    <button class="btn btn-primary" onclick="showClerkSettings()" style="width: 100%;">Configure Clerk API Key</button>
+                </div>
+
+                <div id="authButtons" style="display: none;">
+                    <button class="btn btn-primary" onclick="signIn()" id="signInBtn" style="width: 100%; margin-bottom: 0.5rem;">Sign In with Clerk</button>
+                    <button class="btn btn-secondary" onclick="signUp()" id="signUpBtn" style="width: 100%;">Create Account</button>
+                    <button class="btn btn-secondary" onclick="showClerkSettings()" style="width: 100%; margin-top: 0.5rem;">Change API Key</button>
+                </div>
+
+                <div id="userActions" style="display: none;">
+                    <button class="btn btn-secondary" onclick="manageAccount()" style="width: 100%; margin-bottom: 0.5rem;">Manage Account</button>
+                    <button class="btn btn-secondary" onclick="signOut()" style="width: 100%;">Sign Out</button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModalById('userMenuModal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Clerk Settings Modal -->
+    <div class="modal" id="clerkSettingsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Clerk API Configuration</h2>
+                <p class="modal-subtitle">Set up authentication for Vanguard Studio</p>
+            </div>
+            <div class="modal-body">
+                <div class="input-group">
+                    <label class="input-label">Clerk Publishable Key</label>
+                    <input type="text" class="input-field" id="clerkApiKeyInput" placeholder="pk_test_..." />
+                    <div style="font-size: 0.8rem; color: var(--text-tertiary); margin-top: 0.5rem;">
+                        Find this in your Clerk Dashboard → API Keys → Publishable Key
+                    </div>
+                </div>
+                <div style="padding: 1rem; background: var(--surface-primary); border-radius: var(--radius-md); border-left: 3px solid var(--info); margin-top: 1rem;">
+                    <div style="font-weight: 600; margin-bottom: 0.5rem; color: var(--text-primary);">📚 Quick Setup Guide:</div>
+                    <ol style="margin-left: 1.5rem; color: var(--text-secondary); font-size: 0.85rem; line-height: 1.8;">
+                        <li>Visit <a href="https://dashboard.clerk.com" target="_blank" style="color: var(--accent-primary); text-decoration: underline;">dashboard.clerk.com</a></li>
+                        <li>Sign in or create a free account</li>
+                        <li>Click "Create Application"</li>
+                        <li>Choose your authentication options</li>
+                        <li>Go to "API Keys" in the sidebar</li>
+                        <li>Copy the "Publishable Key" (starts with pk_)</li>
+                        <li>Paste it above and click Save</li>
+                    </ol>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModalById('clerkSettingsModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="saveClerkApiKey()">Save & Initialize</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Clerk Sign In Modal -->
+    <div class="modal" id="clerkSignInModal">
+        <div class="modal-content" style="max-width: 450px; padding: 0; overflow: hidden;">
+            <div id="clerkSignInContainer"></div>
+        </div>
+    </div>
+
+    <!-- Community Login Modal -->
+    <div class="modal" id="communityLoginModal">
+        <div class="modal-content" style="max-width: 450px;">
+            <div class="modal-header">
+                <h2 class="modal-title">👥 Community Login</h2>
+                <p class="modal-subtitle">Join the collaborative palette creation space</p>
+            </div>
+            <div class="modal-body">
+                <div class="input-group">
+                    <label class="input-label">Your Username</label>
+                    <input type="text" class="input-field" id="communityUsername" placeholder="e.g., Alex, Designer123, ColorMaster" />
+                    <div style="font-size: 0.8rem; color: var(--text-tertiary); margin-top: 0.5rem;">
+                        This identifies your palette contributions to friends
+                    </div>
+                </div>
+                <div class="input-group" style="margin-top: 1rem;">
+                    <label class="input-label">Community Password</label>
+                    <input type="password" class="input-field" id="communityPassword" placeholder="Enter shared password" />
+                    <div style="font-size: 0.8rem; color: var(--text-tertiary); margin-top: 0.5rem;">
+                        Ask the community owner for the password
+                    </div>
+                </div>
+                <div id="loginError" style="display: none; padding: 0.75rem; background: rgba(239, 68, 68, 0.1); border-left: 3px solid #ef4444; border-radius: var(--radius-md); margin-top: 1rem; color: #ef4444; font-size: 0.9rem;"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModalById('communityLoginModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="communityLogin()">Login</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Community Password Setup Modal -->
+    <div class="modal" id="communityPasswordSetupModal">
+        <div class="modal-content" style="max-width: 450px;">
+            <div class="modal-header">
+                <h2 class="modal-title">🔐 Setup Community Password</h2>
+                <p class="modal-subtitle">Create a shared password for your friends</p>
+            </div>
+            <div class="modal-body">
+                <div style="padding: 1rem; background: var(--surface-primary); border-radius: var(--radius-md); border-left: 3px solid var(--info); margin-bottom: 1rem;">
+                    <div style="font-weight: 600; margin-bottom: 0.5rem; color: var(--text-primary);">💡 How it works:</div>
+                    <ul style="margin-left: 1.5rem; color: var(--text-secondary); font-size: 0.85rem; line-height: 1.8;">
+                        <li>Set one password that all friends will use</li>
+                        <li>Each friend picks their own unique username</li>
+                        <li>Everyone can see who created which palettes</li>
+                        <li>Share the password only with people you trust</li>
+                    </ul>
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Community Password</label>
+                    <input type="password" class="input-field" id="setupCommunityPassword" placeholder="Create a memorable password" />
+                </div>
+                <div class="input-group" style="margin-top: 1rem;">
+                    <label class="input-label">Confirm Password</label>
+                    <input type="password" class="input-field" id="setupCommunityPasswordConfirm" placeholder="Re-enter password" />
+                </div>
+                <div id="setupError" style="display: none; padding: 0.75rem; background: rgba(239, 68, 68, 0.1); border-left: 3px solid #ef4444; border-radius: var(--radius-md); margin-top: 1rem; color: #ef4444; font-size: 0.9rem;"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModalById('communityPasswordSetupModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="saveCommunityPassword()">Save Password</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification -->
+    <div class="notification" id="notification">
+        <span class="notification-icon" id="notificationIcon">✓</span>
+        <span id="notificationText">Success!</span>
+    </div>
+
+    <script>
+        // State Management
+        const state = {
+            palettes: [],
+            selectedPalette: 0,
+            fonts: [
+                { heading: 'Inter', body: 'Inter', name: 'Modern Clean' },
+                { heading: 'Playfair Display', body: 'Source Sans Pro', name: 'Editorial' },
+                { heading: 'Space Grotesk', body: 'Inter', name: 'Tech Forward' },
+                { heading: 'Montserrat', body: 'Open Sans', name: 'Professional' },
+                { heading: 'Poppins', body: 'Poppins', name: 'Friendly' },
+                { heading: 'DM Serif Display', body: 'DM Sans', name: 'Elegant' },
+            ],
+            selectedFont: 0,
+            config: {
+                fontSize: 16,
+                lineHeight: 1.6,
+                spacing: 8,
+                borderRadius: 'rounded',
+                shadow: 'subtle',
+                animation: 300,
+                theme: 'light',
+                previewDark: false,
+                textColors: {
+                    heading: '#000000',
+                    body: '#333333',
+                    link: '#0066cc',
+                    muted: '#666666'
+                }
+            },
+            history: [],
+            historyIndex: -1
+        };
+
+        // Clerk Authentication
+        let clerkInstance = null;
+        let currentUser = null;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', async () => {
+            generatePalettes();
+            renderFonts();
+            setupKeyboardShortcuts();
+            loadFromLocalStorage();
+            initializeTextColors();
+            applyDesignSystem();
+            updateCommunityUserUI();
+            await initializeClerk();
+            loadSavedDesigns();
+        });
+
+        async function initializeClerk() {
+            try {
+                // Get Clerk publishable key from localStorage or use default
+                let CLERK_PUBLISHABLE_KEY = localStorage.getItem('clerkPublishableKey');
+
+                // If no key is stored, show a helpful message
+                if (!CLERK_PUBLISHABLE_KEY || CLERK_PUBLISHABLE_KEY === 'pk_test_YOUR_KEY_HERE') {
+                    console.log('Clerk not configured. Click the account button to set up authentication.');
+                    return;
+                }
+
+                if (window.Clerk) {
+                    // Initialize Clerk
+                    clerkInstance = window.Clerk;
+                    await clerkInstance.load({
+                        publishableKey: CLERK_PUBLISHABLE_KEY
+                    });
+
+                    // Check if user is signed in
+                    if (clerkInstance.user) {
+                        currentUser = clerkInstance.user;
+                        updateUserUI(currentUser);
+                    }
+
+                    // Listen for auth state changes
+                    clerkInstance.addListener((emittedData) => {
+                        if (emittedData.user) {
+                            currentUser = emittedData.user;
+                            updateUserUI(currentUser);
+                            loadSavedDesigns();
+                            // Close sign-in modal if open
+                            closeModalById('clerkSignInModal');
+                            showNotification('Signed in successfully!', '✓');
+                        } else {
+                            currentUser = null;
+                            updateUserUI(null);
+                        }
+                    });
+
+                    console.log('Clerk initialized successfully!');
+                }
+            } catch (error) {
+                console.error('Clerk initialization error:', error);
+                showNotification('Clerk setup error. Check console.', '⚠️');
+            }
+        }
+
+        function updateUserUI(user) {
+            const profileAvatar = document.getElementById('userProfileAvatar');
+            const profileName = document.getElementById('userProfileName');
+            const dropdownName = document.getElementById('dropdownUserName');
+            const dropdownEmail = document.getElementById('dropdownUserEmail');
+            const userEmail = document.getElementById('userEmail');
+            const clerkSetupInfo = document.getElementById('clerkSetupInfo');
+            const authButtons = document.getElementById('authButtons');
+            const userActions = document.getElementById('userActions');
+
+            // Dropdown menu items
+            const dropdownSignin = document.getElementById('dropdown-signin');
+            const dropdownAccount = document.getElementById('dropdown-account');
+            const dropdownLogout = document.getElementById('dropdown-logout');
+
+            const hasClerkKey = localStorage.getItem('clerkPublishableKey');
+
+            if (user) {
+                // User is signed in
+                const userName = user.firstName || user.fullName || user.emailAddresses[0]?.emailAddress?.split('@')[0] || 'User';
+                const userImageUrl = user.imageUrl || user.profileImageUrl;
+
+                // Update header profile button
+                if (userImageUrl) {
+                    profileAvatar.innerHTML = `<img src="${userImageUrl}" alt="${userName}">`;
+                } else {
+                    const initial = userName.charAt(0).toUpperCase();
+                    profileAvatar.textContent = initial;
+                }
+                profileName.textContent = userName;
+
+                // Update dropdown
+                dropdownName.textContent = userName;
+                dropdownEmail.textContent = user.emailAddresses[0]?.emailAddress || 'Signed In';
+
+                // Show/hide dropdown items
+                dropdownSignin.style.display = 'none';
+                dropdownAccount.style.display = 'flex';
+                dropdownLogout.style.display = 'flex';
+
+                // Update modal
+                if (userEmail) {
+                    userEmail.textContent = user.emailAddresses[0]?.emailAddress || 'Signed In';
+                }
+                if (clerkSetupInfo) clerkSetupInfo.style.display = 'none';
+                if (authButtons) authButtons.style.display = 'none';
+                if (userActions) userActions.style.display = 'block';
+            } else if (hasClerkKey && clerkInstance) {
+                // Clerk is configured but user not signed in
+                profileAvatar.textContent = '👤';
+                profileName.textContent = 'Sign In';
+                dropdownName.textContent = 'Guest';
+                dropdownEmail.textContent = 'Not signed in';
+
+                // Show/hide dropdown items
+                dropdownSignin.style.display = 'flex';
+                dropdownAccount.style.display = 'none';
+                dropdownLogout.style.display = 'none';
+
+                // Update modal
+                if (userEmail) userEmail.textContent = 'Not signed in';
+                if (clerkSetupInfo) clerkSetupInfo.style.display = 'none';
+                if (authButtons) authButtons.style.display = 'block';
+                if (userActions) userActions.style.display = 'none';
+            } else {
+                // Clerk not configured
+                profileAvatar.textContent = '👤';
+                profileName.textContent = 'Sign In';
+                dropdownName.textContent = 'Guest';
+                dropdownEmail.textContent = 'Authentication not configured';
+
+                // Show/hide dropdown items
+                dropdownSignin.style.display = 'none';
+                dropdownAccount.style.display = 'none';
+                dropdownLogout.style.display = 'none';
+
+                // Update modal
+                if (userEmail) userEmail.textContent = 'Authentication not configured';
+                if (clerkSetupInfo) clerkSetupInfo.style.display = 'block';
+                if (authButtons) authButtons.style.display = 'none';
+                if (userActions) userActions.style.display = 'none';
+            }
+        }
+
+        // User Dropdown Functions
+        function toggleUserDropdown() {
+            const dropdown = document.getElementById('userDropdown');
+            const isOpen = dropdown.classList.contains('show');
+
+            if (isOpen) {
+                closeUserDropdown();
+            } else {
+                dropdown.classList.add('show');
+                // Add click listener to close when clicking outside
+                setTimeout(() => {
+                    document.addEventListener('click', closeUserDropdownOnClickOutside);
+                }, 0);
+            }
+        }
+
+        function closeUserDropdown() {
+            const dropdown = document.getElementById('userDropdown');
+            dropdown.classList.remove('show');
+            document.removeEventListener('click', closeUserDropdownOnClickOutside);
+        }
+
+        function closeUserDropdownOnClickOutside(event) {
+            const dropdown = document.getElementById('userDropdown');
+            const profileBtn = document.getElementById('userProfileBtn');
+
+            if (!profileBtn.contains(event.target)) {
+                closeUserDropdown();
+            }
+        }
+
+        async function signIn() {
+            closeUserDropdown();
+            if (clerkInstance) {
+                try {
+                    // Show the sign-in modal
+                    const modal = document.getElementById('clerkSignInModal');
+                    const container = document.getElementById('clerkSignInContainer');
+
+                    // Clear any existing content
+                    container.innerHTML = '<div style="padding: 40px; text-align: center; color: var(--text-secondary);"><div style="border: 3px solid #f3f3f3; border-top: 3px solid var(--accent-primary); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 16px;"></div><p>Loading authentication...</p></div>';
+
+                    modal.classList.add('show');
+                    document.addEventListener('click', handleModalOutsideClick);
+
+                    // Mount Clerk Sign In component
+                    clerkInstance.mountSignIn(container, {
+                        appearance: {
+                            elements: {
+                                rootBox: {
+                                    width: '100%'
+                                },
+                                card: {
+                                    boxShadow: 'none',
+                                    border: 'none',
+                                    background: 'var(--bg-secondary)'
+                                }
+                            }
+                        }
+                    });
+                } catch (error) {
+                    console.error('Sign in error:', error);
+                    showNotification('Sign in failed. Please try again.', '⚠️');
+                    closeModalById('clerkSignInModal');
+                }
+            } else {
+                showNotification('Please configure Clerk first', '⚠️');
+                showClerkSettings();
+            }
+        }
+
+        async function signUp() {
+            closeUserDropdown();
+            if (clerkInstance) {
+                try {
+                    await clerkInstance.openSignUp({
+                        afterSignInUrl: window.location.href,
+                        afterSignUpUrl: window.location.href
+                    });
+                } catch (error) {
+                    console.error('Sign up error:', error);
+                    showNotification('Sign up failed. Please try again.', '⚠️');
+                }
+            } else {
+                showNotification('Please configure Clerk first', '⚠️');
+                showClerkSettings();
+            }
+        }
+
+        async function signOut() {
+            if (clerkInstance) {
+                try {
+                    closeUserDropdown();
+                    await clerkInstance.signOut();
+                    closeModalById('userMenuModal');
+                    showNotification('Signed out successfully', '👋');
+                    currentUser = null;
+                    updateUserUI(null);
+                } catch (error) {
+                    console.error('Sign out error:', error);
+                    showNotification('Sign out failed', '⚠️');
+                }
+            }
+        }
+
+        async function manageAccount() {
+            closeUserDropdown();
+            if (clerkInstance) {
+                try {
+                    await clerkInstance.openUserProfile();
+                } catch (error) {
+                    console.error('Manage account error:', error);
+                    showNotification('Could not open account settings', '⚠️');
+                }
+            }
+        }
+
+        function showClerkSettings() {
+            closeModalById('userMenuModal');
+            document.getElementById('clerkSettingsModal').classList.add('show');
+
+            // Pre-fill with existing key if available
+            const existingKey = localStorage.getItem('clerkPublishableKey');
+            if (existingKey) {
+                document.getElementById('clerkApiKeyInput').value = existingKey;
+            }
+
+            document.addEventListener('click', handleModalOutsideClick);
+        }
+
+        async function saveClerkApiKey() {
+            const apiKey = document.getElementById('clerkApiKeyInput').value.trim();
+
+            if (!apiKey) {
+                showNotification('Please enter your Clerk API key', '⚠️');
+                return;
+            }
+
+            if (!apiKey.startsWith('pk_')) {
+                showNotification('Invalid key format. Should start with pk_', '⚠️');
+                return;
+            }
+
+            // Save to localStorage
+            localStorage.setItem('clerkPublishableKey', apiKey);
+
+            closeModalById('clerkSettingsModal');
+            showNotification('Clerk API key saved! Initializing...', '✅');
+
+            // Initialize Clerk with new key
+            try {
+                await initializeClerk();
+                updateUserUI(currentUser);
+                showNotification('Clerk initialized successfully!', '🎉');
+            } catch (error) {
+                console.error('Failed to initialize Clerk:', error);
+                showNotification('Failed to initialize. Check your API key.', '⚠️');
+            }
+        }
+
+        function initializeTextColors() {
+            if (state.config.textColors) {
+                document.getElementById('headingColor').value = state.config.textColors.heading;
+                document.getElementById('headingColorValue').textContent = state.config.textColors.heading;
+                document.getElementById('bodyColor').value = state.config.textColors.body;
+                document.getElementById('bodyColorValue').textContent = state.config.textColors.body;
+                document.getElementById('linkColor').value = state.config.textColors.link;
+                document.getElementById('linkColorValue').textContent = state.config.textColors.link;
+                document.getElementById('mutedColor').value = state.config.textColors.muted;
+                document.getElementById('mutedColorValue').textContent = state.config.textColors.muted;
+            }
+        }
+
+        // Design Management Functions
+        function showSaveModal() {
+            document.getElementById('saveModal').classList.add('show');
+            document.getElementById('designName').value = '';
+            document.getElementById('designDescription').value = '';
+            document.getElementById('designTags').value = '';
+            document.addEventListener('click', handleModalOutsideClick);
+        }
+
+        function showLoadModal() {
+            document.getElementById('loadModal').classList.add('show');
+            renderSavedDesignsList();
+            document.addEventListener('click', handleModalOutsideClick);
+        }
+
+        // Community Authentication Functions
+        function showCommunityLogin() {
+            closeUserDropdown();
+
+            // Check if community password is set
+            const communityPass = localStorage.getItem('communityPassword');
+            if (!communityPass) {
+                // First time - setup password
+                document.getElementById('communityPasswordSetupModal').classList.add('show');
+            } else {
+                // Password exists - show login
+                document.getElementById('communityLoginModal').classList.add('show');
+                document.getElementById('communityUsername').value = localStorage.getItem('communityUsername') || '';
+            }
+            document.addEventListener('click', handleModalOutsideClick);
+        }
+
+        function saveCommunityPassword() {
+            const password = document.getElementById('setupCommunityPassword').value;
+            const confirmPassword = document.getElementById('setupCommunityPasswordConfirm').value;
+            const errorDiv = document.getElementById('setupError');
+
+            if (!password || password.length < 4) {
+                errorDiv.textContent = 'Password must be at least 4 characters long';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                errorDiv.textContent = 'Passwords do not match';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            // Save password
+            localStorage.setItem('communityPassword', password);
+            closeModalById('communityPasswordSetupModal');
+            showNotification('Community password created! Share it with friends 🎉', '🔐');
+
+            // Now show login
+            setTimeout(() => showCommunityLogin(), 300);
+        }
+
+        function communityLogin() {
+            const username = document.getElementById('communityUsername').value.trim();
+            const password = document.getElementById('communityPassword').value;
+            const storedPassword = localStorage.getItem('communityPassword');
+            const errorDiv = document.getElementById('loginError');
+
+            if (!username) {
+                errorDiv.textContent = 'Please enter a username';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            if (username.length < 2) {
+                errorDiv.textContent = 'Username must be at least 2 characters';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            if (password !== storedPassword) {
+                errorDiv.textContent = 'Incorrect password';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            // Login successful
+            localStorage.setItem('communityUsername', username);
+            localStorage.setItem('communityLoggedIn', 'true');
+            closeModalById('communityLoginModal');
+            updateCommunityUserUI();
+            showNotification(`Welcome back, ${username}! 👋`, '✅');
+        }
+
+        function communityLogout() {
+            localStorage.removeItem('communityLoggedIn');
+            updateCommunityUserUI();
+            showNotification('Logged out successfully', '👋');
+        }
+
+        function updateCommunityUserUI() {
+            const isLoggedIn = localStorage.getItem('communityLoggedIn') === 'true';
+            const username = localStorage.getItem('communityUsername') || 'Guest';
+
+            const profileAvatar = document.getElementById('userProfileAvatar');
+            const profileName = document.getElementById('userProfileName');
+            const dropdownName = document.getElementById('dropdownUserName');
+            const dropdownEmail = document.getElementById('dropdownUserEmail');
+            const dropdownSignin = document.getElementById('dropdown-signin');
+            const dropdownLogout = document.getElementById('dropdown-logout');
+
+            if (isLoggedIn) {
+                // User is logged in
+                const initials = username.substring(0, 2).toUpperCase();
+                profileAvatar.textContent = initials;
+                profileName.textContent = username;
+
+                if (dropdownName) dropdownName.textContent = username;
+                if (dropdownEmail) dropdownEmail.textContent = 'Community Member';
+                if (dropdownSignin) dropdownSignin.style.display = 'none';
+                if (dropdownLogout) dropdownLogout.style.display = 'flex';
+            } else {
+                // Not logged in
+                profileAvatar.textContent = '👤';
+                profileName.textContent = 'Login';
+
+                if (dropdownName) dropdownName.textContent = 'Guest';
+                if (dropdownEmail) dropdownEmail.textContent = 'Not signed in';
+                if (dropdownSignin) dropdownSignin.style.display = 'flex';
+                if (dropdownLogout) dropdownLogout.style.display = 'none';
+            }
+        }
+
+        function showUserMenu() {
+            toggleUserDropdown();
+        }
+
+        function closeModalById(modalId) {
+            const modal = document.getElementById(modalId);
+            modal.classList.remove('show');
+
+            // If closing the Clerk sign-in modal, unmount the component
+            if (modalId === 'clerkSignInModal' && clerkInstance) {
+                const container = document.getElementById('clerkSignInContainer');
+                if (container) {
+                    clerkInstance.unmountSignIn(container);
+                }
+            }
+
+            document.removeEventListener('click', handleModalOutsideClick);
+        }
+
+        function handleModalOutsideClick(e) {
+            if (e.target.classList.contains('modal') && e.target.classList.contains('show')) {
+                const modalId = e.target.id;
+
+                // If closing the Clerk sign-in modal, unmount the component
+                if (modalId === 'clerkSignInModal' && clerkInstance) {
+                    const container = document.getElementById('clerkSignInContainer');
+                    if (container) {
+                        clerkInstance.unmountSignIn(container);
+                    }
+                }
+
+                e.target.classList.remove('show');
+                document.removeEventListener('click', handleModalOutsideClick);
+            }
+        }
+
+        function saveCurrentDesign() {
+            const name = document.getElementById('designName').value.trim();
+            if (!name) {
+                showNotification('Please enter a design name', '⚠️');
+                return;
+            }
+
+            // Get community username
+            const communityUsername = localStorage.getItem('communityUsername') || 'Anonymous';
+            const isLoggedIn = localStorage.getItem('communityLoggedIn') === 'true';
+
+            const design = {
+                id: Date.now().toString(),
+                name: name,
+                description: document.getElementById('designDescription').value.trim(),
+                tags: document.getElementById('designTags').value.trim(),
+                palette: state.palettes[state.selectedPalette],
+                textColors: state.config.textColors,
+                font: state.fonts[state.selectedFont],
+                config: { ...state.config },
+                createdAt: new Date().toISOString(),
+                createdBy: isLoggedIn ? communityUsername : 'Guest',
+                userId: currentUser?.id || 'local'
+            };
+
+            // Get existing designs from localStorage
+            const savedDesigns = JSON.parse(localStorage.getItem('savedDesigns') || '[]');
+            savedDesigns.unshift(design);
+            localStorage.setItem('savedDesigns', JSON.stringify(savedDesigns));
+
+            closeModalById('saveModal');
+            showNotification(`"${name}" saved successfully!`, '💾');
+        }
+
+        function loadSavedDesigns() {
+            const savedDesigns = JSON.parse(localStorage.getItem('savedDesigns') || '[]');
+            return savedDesigns;
+        }
+
+        function renderSavedDesignsList() {
+            const designs = loadSavedDesigns();
+            const container = document.getElementById('savedDesignsList');
+
+            if (designs.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📦</div>
+                        <div>No saved designs yet</div>
+                        <div style="font-size: 0.85rem; margin-top: 0.5rem;">Create your first design and save it to get started!</div>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = designs.map(design => `
+                <div class="saved-design-card" onclick="loadDesign('${design.id}')">
+                    <div class="design-preview-colors">
+                        ${design.palette.colors.slice(0, 5).map(color =>
+                            `<div class="design-preview-color" style="background: ${color}"></div>`
+                        ).join('')}
+                    </div>
+                    <div class="design-info">
+                        <div class="design-info-name">${design.name}</div>
+                        <div class="design-info-meta">
+                            <span style="color: var(--accent-primary); font-weight: 500;">👤 ${design.createdBy || 'Guest'}</span> •
+                            ${new Date(design.createdAt).toLocaleDateString()}
+                            ${design.tags ? ` • ${design.tags}` : ''}
+                        </div>
+                    </div>
+                    <div class="design-actions-btns">
+                        <div class="design-action-icon" onclick="event.stopPropagation(); deleteDesign('${design.id}')" title="Delete">
+                            🗑️
+                        </div>
+                        <div class="design-action-icon" onclick="event.stopPropagation(); duplicateDesign('${design.id}')" title="Duplicate">
+                            📋
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function loadDesign(id) {
+            const designs = loadSavedDesigns();
+            const design = designs.find(d => d.id === id);
+
+            if (design) {
+                // Apply the saved design
+                state.config = { ...design.config };
+                state.config.textColors = { ...design.textColors };
+
+                // Find and select the matching palette or create it
+                const paletteIndex = state.palettes.findIndex(p =>
+                    JSON.stringify(p.colors) === JSON.stringify(design.palette.colors)
+                );
+
+                if (paletteIndex >= 0) {
+                    state.selectedPalette = paletteIndex;
+                } else {
+                    state.palettes.unshift(design.palette);
+                    state.selectedPalette = 0;
+                    renderPalettes();
+                }
+
+                // Find and select the matching font
+                const fontIndex = state.fonts.findIndex(f =>
+                    f.heading === design.font.heading && f.body === design.font.body
+                );
+                if (fontIndex >= 0) {
+                    state.selectedFont = fontIndex;
+                    selectFont(fontIndex);
+                }
+
+                // Update UI
+                initializeTextColors();
+                applyDesignSystem();
+                closeModalById('loadModal');
+                showNotification(`"${design.name}" loaded successfully!`, '📂');
+            }
+        }
+
+        function deleteDesign(id) {
+            if (confirm('Are you sure you want to delete this design?')) {
+                const designs = loadSavedDesigns();
+                const filtered = designs.filter(d => d.id !== id);
+                localStorage.setItem('savedDesigns', JSON.stringify(filtered));
+                renderSavedDesignsList();
+                showNotification('Design deleted', '🗑️');
+            }
+        }
+
+        function duplicateDesign(id) {
+            const designs = loadSavedDesigns();
+            const design = designs.find(d => d.id === id);
+
+            if (design) {
+                const duplicate = {
+                    ...design,
+                    id: Date.now().toString(),
+                    name: design.name + ' (Copy)',
+                    createdAt: new Date().toISOString()
+                };
+
+                designs.unshift(duplicate);
+                localStorage.setItem('savedDesigns', JSON.stringify(designs));
+                renderSavedDesignsList();
+                showNotification(`"${duplicate.name}" created!`, '📋');
+            }
+        }
+
+        // Color Generation
+        function hslToHex(h, s, l) {
+            l /= 100;
+            const a = s * Math.min(l, 1 - l) / 100;
+            const f = n => {
+                const k = (n + h / 30) % 12;
+                const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+                return Math.round(255 * color).toString(16).padStart(2, '0');
+            };
+            return `#${f(0)}${f(8)}${f(4)}`;
+        }
+
+        function generatePalette() {
+            const strategies = ['analogous', 'complementary', 'triadic', 'tetradic', 'monochromatic'];
+            const strategy = strategies[Math.floor(Math.random() * strategies.length)];
+            const baseHue = Math.random() * 360;
+            const palette = [];
+
+            switch(strategy) {
+                case 'analogous':
+                    for(let i = 0; i < 5; i++) {
+                        palette.push(hslToHex(
+                            (baseHue + i * 30) % 360,
+                            60 + Math.random() * 30,
+                            45 + Math.random() * 20
+                        ));
+                    }
+                    break;
+                case 'complementary':
+                    palette.push(hslToHex(baseHue, 70, 50));
+                    palette.push(hslToHex((baseHue + 180) % 360, 70, 50));
+                    palette.push(hslToHex(baseHue, 50, 70));
+                    palette.push(hslToHex((baseHue + 180) % 360, 50, 30));
+                    palette.push(hslToHex(baseHue, 30, 90));
+                    break;
+                case 'triadic':
+                    for(let i = 0; i < 5; i++) {
+                        const hue = (baseHue + (i % 3) * 120) % 360;
+                        palette.push(hslToHex(
+                            hue,
+                            60 + Math.random() * 20,
+                            40 + Math.random() * 30
+                        ));
+                    }
+                    break;
+                case 'tetradic':
+                    for(let i = 0; i < 5; i++) {
+                        const hue = (baseHue + (i % 4) * 90) % 360;
+                        palette.push(hslToHex(
+                            hue,
+                            55 + Math.random() * 30,
+                            40 + Math.random() * 25
+                        ));
+                    }
+                    break;
+                case 'monochromatic':
+                    for(let i = 0; i < 5; i++) {
+                        palette.push(hslToHex(
+                            baseHue,
+                            50 + Math.random() * 30,
+                            20 + i * 15
+                        ));
+                    }
+                    break;
+            }
+
+            return {
+                colors: palette,
+                name: getPaletteName(),
+                contrast: checkContrast(palette[0], palette[4])
+            };
+        }
+
+        function getPaletteName() {
+            const names = [
+                'Aurora Dreams', 'Ocean Depths', 'Forest Whisper', 'Sunset Glow',
+                'Midnight Sky', 'Desert Bloom', 'Arctic Frost', 'Tropical Paradise',
+                'Urban Jungle', 'Cosmic Dust'
+            ];
+            return names[Math.floor(Math.random() * names.length)];
+        }
+
+        function checkContrast(color1, color2) {
+            // Check palette versatility by analyzing brightness range
+            const getLuminance = (hex) => {
+                const r = parseInt(hex.slice(1, 3), 16) / 255;
+                const g = parseInt(hex.slice(3, 5), 16) / 255;
+                const b = parseInt(hex.slice(5, 7), 16) / 255;
+                return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+            };
+
+            const l1 = getLuminance(color1);
+            const l2 = getLuminance(color2);
+            const ratio = (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05);
+
+            // More forgiving ratings for design palettes
+            // Checks if palette has good brightness contrast for versatility
+            if (ratio >= 3) return 'aaa';
+            if (ratio >= 1.5) return 'aa';
+            return 'aa'; // Default to 'aa' - most palettes are usable
+        }
+
+        function generatePalettes() {
+            state.palettes = [];
+            for(let i = 0; i < 8; i++) {
+                state.palettes.push(generatePalette());
+            }
+            renderPalettes();
+            selectPalette(0);
+            saveToHistory();
+            showNotification('New palettes generated!', '🎨');
+        }
+
+        function renderPalettes() {
+            const container = document.getElementById('palettesContainer');
+            container.innerHTML = '';
+
+            state.palettes.forEach((palette, index) => {
+                const item = document.createElement('div');
+                item.className = `palette-item ${index === state.selectedPalette ? 'active' : ''}`;
+                item.onclick = () => selectPalette(index);
+
+                const header = document.createElement('div');
+                header.className = 'palette-header';
+
+                const name = document.createElement('div');
+                name.className = 'palette-name';
+                name.textContent = palette.name;
+
+                const meta = document.createElement('div');
+                meta.className = 'palette-meta';
+
+                const badge = document.createElement('span');
+                badge.className = `contrast-badge ${palette.contrast}`;
+                badge.textContent = palette.contrast.toUpperCase();
+
+                meta.appendChild(badge);
+                header.appendChild(name);
+                header.appendChild(meta);
+
+                const colors = document.createElement('div');
+                colors.className = 'palette-colors';
+
+                palette.colors.forEach(color => {
+                    const swatch = document.createElement('div');
+                    swatch.className = 'color-swatch';
+                    swatch.style.backgroundColor = color;
+                    swatch.onclick = (e) => {
+                        e.stopPropagation();
+                        copyToClipboard(color);
+                    };
+
+                    const hex = document.createElement('div');
+                    hex.className = 'color-hex';
+                    hex.textContent = color.toUpperCase();
+
+                    swatch.appendChild(hex);
+                    colors.appendChild(swatch);
+                });
+
+                item.appendChild(header);
+                item.appendChild(colors);
+                container.appendChild(item);
+            });
+        }
+
+        function selectPalette(index) {
+            state.selectedPalette = index;
+            renderPalettes();
+            applyDesignSystem();
+        }
+
+        // Typography
+        function renderFonts() {
+            const container = document.getElementById('fontsContainer');
+            container.innerHTML = '';
+
+            state.fonts.forEach((font, index) => {
+                const item = document.createElement('div');
+                item.className = `font-item ${index === state.selectedFont ? 'active' : ''}`;
+                item.onclick = () => selectFont(index);
+
+                const heading = document.createElement('div');
+                heading.className = 'font-preview-heading';
+                heading.style.fontFamily = font.heading;
+                heading.textContent = 'The quick brown fox';
+
+                const body = document.createElement('div');
+                body.className = 'font-preview-body';
+                body.style.fontFamily = font.body;
+                body.textContent = 'The quick brown fox jumps over the lazy dog. Pack my box with five dozen liquor jugs.';
+
+                const info = document.createElement('div');
+                info.className = 'font-info';
+                info.innerHTML = `
+                    <span><strong>${font.name}</strong></span>
+                    <span>H: ${font.heading}</span>
+                    <span>B: ${font.body}</span>
+                `;
+
+                item.appendChild(heading);
+                item.appendChild(body);
+                item.appendChild(info);
+                container.appendChild(item);
+            });
+        }
+
+        function selectFont(index) {
+            state.selectedFont = index;
+            renderFonts();
+            updateFontLink();
+            applyDesignSystem();
+        }
+
+        function updateFontLink() {
+            const font = state.fonts[state.selectedFont];
+            const link = document.getElementById('fontLink');
+            const families = [];
+
+            if (font.heading === font.body) {
+                families.push(`${font.heading.replace(' ', '+')}:wght@300;400;500;600;700;800;900`);
+            } else {
+                families.push(`${font.heading.replace(' ', '+')}:wght@600;700;800;900`);
+                families.push(`${font.body.replace(' ', '+')}:wght@300;400;500;600;700`);
+            }
+
+            link.href = `https://fonts.googleapis.com/css2?${families.map(f => `family=${f}`).join('&')}&display=swap`;
+        }
+
+        // Controls
+        function updateSize() {
+            const value = document.getElementById('sizeSlider').value;
+            state.config.fontSize = parseInt(value);
+            document.getElementById('sizeValue').textContent = value + 'px';
+            applyDesignSystem();
+        }
+
+        function updateLineHeight() {
+            const value = document.getElementById('lineSlider').value;
+            state.config.lineHeight = parseFloat(value);
+            document.getElementById('lineValue').textContent = value;
+            applyDesignSystem();
+        }
+
+        function updateSpacing() {
+            const value = document.getElementById('spacingSlider').value;
+            state.config.spacing = parseInt(value);
+            document.getElementById('spacingValue').textContent = value + 'px';
+            applyDesignSystem();
+        }
+
+        function updateAnimation() {
+            const value = document.getElementById('animSlider').value;
+            state.config.animation = parseInt(value);
+            document.getElementById('animValue').textContent = value + 'ms';
+            applyDesignSystem();
+        }
+
+        function setBorderRadius(value) {
+            state.config.borderRadius = value;
+            document.querySelectorAll('#tab-layout .option-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            applyDesignSystem();
+        }
+
+        function setShadow(value) {
+            state.config.shadow = value;
+            document.querySelectorAll('#tab-effects .option-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            applyDesignSystem();
+        }
+
+        function setWidth(value) {
+            state.config.width = value;
+            event.target.classList.toggle('active');
+            applyDesignSystem();
+        }
+
+        function toggleEffect(effect) {
+            event.target.classList.toggle('active');
+            applyDesignSystem();
+        }
+
+        // Apply Design System
+        function applyDesignSystem() {
+            const root = document.documentElement;
+            const palette = state.palettes[state.selectedPalette]?.colors || ['#6366f1', '#8b5cf6', '#ec4899', '#10b981', '#f59e0b'];
+            const font = state.fonts[state.selectedFont];
+
+            // Colors
+            palette.forEach((color, i) => {
+                root.style.setProperty(`--color-${i + 1}`, color);
+            });
+
+            // Typography
+            root.style.setProperty('--font-heading', font.heading);
+            root.style.setProperty('--font-body', font.body);
+            root.style.setProperty('--size-base', state.config.fontSize + 'px');
+            root.style.setProperty('--line-height', state.config.lineHeight);
+
+            // Spacing
+            root.style.setProperty('--spacing-unit', state.config.spacing + 'px');
+
+            // Border Radius
+            const radiusMap = {
+                sharp: { sm: '2px', md: '4px', lg: '6px', xl: '8px' },
+                rounded: { sm: '4px', md: '8px', lg: '12px', xl: '16px' },
+                pill: { sm: '8px', md: '16px', lg: '24px', xl: '32px' }
+            };
+            const radius = radiusMap[state.config.borderRadius];
+            Object.entries(radius).forEach(([key, value]) => {
+                root.style.setProperty(`--radius-${key}`, value);
+            });
+
+            // Shadows
+            const shadowMap = {
+                none: { sm: 'none', md: 'none', lg: 'none' },
+                subtle: {
+                    sm: '0 2px 4px rgba(0,0,0,0.1)',
+                    md: '0 4px 20px rgba(0,0,0,0.08)',
+                    lg: '0 12px 40px rgba(0,0,0,0.15)'
+                },
+                strong: {
+                    sm: '0 4px 8px rgba(0,0,0,0.2)',
+                    md: '0 8px 30px rgba(0,0,0,0.2)',
+                    lg: '0 20px 60px rgba(0,0,0,0.3)'
+                }
+            };
+            const shadow = shadowMap[state.config.shadow];
+            Object.entries(shadow).forEach(([key, value]) => {
+                root.style.setProperty(`--shadow-${key}`, value);
+            });
+
+            // Animation
+            root.style.setProperty('--transition-base', state.config.animation + 'ms');
+            root.style.setProperty('--transition-fast', (state.config.animation / 2) + 'ms');
+            root.style.setProperty('--transition-slow', (state.config.animation * 1.5) + 'ms');
+
+            // Apply to preview elements
+            updatePreviewElements(palette);
+
+            // Apply text colors
+            applyTextColors();
+        }
+
+        function updatePreviewElements(palette) {
+            // Helper to determine if color is light or dark
+            const isLightColor = (hex) => {
+                const r = parseInt(hex.slice(1, 3), 16);
+                const g = parseInt(hex.slice(3, 5), 16);
+                const b = parseInt(hex.slice(5, 7), 16);
+                const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+                return luminance > 0.5;
+            };
+
+            // Get contrasting text color for button
+            const buttonBg = palette[4];
+            const buttonTextColor = isLightColor(buttonBg) ? '#000000' : '#FFFFFF';
+
+            const elements = {
+                '.nav-logo': { color: palette[0] },
+                '.nav-cta': { background: `linear-gradient(135deg, ${palette[0]} 0%, ${palette[1]} 100%)`, color: isLightColor(palette[0]) ? '#000000' : '#FFFFFF' },
+                '.btn-primary': { backgroundColor: buttonBg, color: buttonTextColor },
+            };
+
+            // Apply to single elements
+            Object.entries(elements).forEach(([selector, styles]) => {
+                const el = document.querySelector(selector);
+                if (el) {
+                    Object.assign(el.style, styles);
+                }
+            });
+
+            // Apply to multiple elements
+            document.querySelectorAll('.hero-section').forEach(el => {
+                el.style.background = `linear-gradient(135deg, ${palette[0]} 0%, ${palette[1]} 100%)`;
+            });
+
+            document.querySelectorAll('.feature-icon').forEach(el => {
+                el.style.background = `linear-gradient(135deg, ${palette[2]} 0%, ${palette[3]} 100%)`;
+            });
+
+            document.querySelectorAll('.btn-secondary').forEach(el => {
+                el.style.borderColor = palette[0];
+                el.style.color = palette[0];
+            });
+
+            // Update accent color for pricing highlights
+            const root = document.documentElement;
+            root.style.setProperty('--accent-primary', palette[0]);
+            root.style.setProperty('--accent-secondary', palette[1]);
+        }
+
+        // UI Functions
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
+
+            event.target.classList.add('active');
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+        }
+
+        function togglePanel() {
+            document.getElementById('controlPanel').classList.toggle('collapsed');
+        }
+
+        function toggleDarkMode() {
+            state.config.theme = state.config.theme === 'light' ? 'dark' : 'light';
+            document.body.classList.toggle('dark');
+            document.getElementById('themeIcon').textContent = state.config.theme === 'light' ? '🌙' : '☀️';
+        }
+
+        function togglePreviewDark() {
+            state.config.previewDark = !state.config.previewDark;
+            document.getElementById('previewFrame').classList.toggle('dark');
+            document.getElementById('previewDark').classList.toggle('active');
+        }
+
+        function setPreviewMode(mode) {
+            const frame = document.getElementById('previewFrame');
+            const widths = { desktop: '100%', tablet: '768px', mobile: '375px' };
+            frame.style.maxWidth = widths[mode];
+            frame.style.margin = mode === 'desktop' ? '0' : '0 auto';
+        }
+
+        function refreshPreview() {
+            applyDesignSystem();
+            showNotification('Preview refreshed', '🔄');
+        }
+
+        // Store default preview HTML
+        let defaultPreviewHTML = null;
+        let isExternalWebsite = false;
+
+        function saveDefaultPreview() {
+            if (!defaultPreviewHTML) {
+                defaultPreviewHTML = document.getElementById('previewFrame').innerHTML;
+            }
+        }
+
+        function loadExternalWebsite() {
+            const urlInput = document.getElementById('previewUrlInput');
+            const url = urlInput.value.trim();
+
+            if (!url) {
+                showNotification('Please enter a URL', '⚠️');
+                return;
+            }
+
+            // Validate URL
+            let finalUrl = url;
+            if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                finalUrl = 'https://' + url;
+            }
+
+            try {
+                new URL(finalUrl);
+            } catch (e) {
+                showNotification('Invalid URL format', '❌');
+                return;
+            }
+
+            // Save default preview if not already saved
+            saveDefaultPreview();
+
+            // Create iframe to load external website
+            const previewFrame = document.getElementById('previewFrame');
+            const iframe = document.createElement('iframe');
+            iframe.style.width = '100%';
+            iframe.style.height = '100%';
+            iframe.style.border = 'none';
+            iframe.style.display = 'block';
+            iframe.src = finalUrl;
+            iframe.id = 'externalWebsiteFrame';
+
+            // Clear preview and add iframe
+            previewFrame.innerHTML = '';
+            previewFrame.appendChild(iframe);
+
+            isExternalWebsite = true;
+            showNotification('Loading website...', '🌐');
+
+            // Try to apply styles after iframe loads
+            iframe.onload = function() {
+                showNotification('Website loaded', '✓');
+                try {
+                    applyStylesToIframe(iframe);
+                } catch (e) {
+                    console.log('Cannot inject styles due to CORS policy:', e);
+                    showNotification('Loaded (styles limited by CORS)', '⚠️');
+                }
+            };
+
+            iframe.onerror = function() {
+                showNotification('Failed to load website', '❌');
+            };
+        }
+
+        function resetToDefaultPreview() {
+            if (!defaultPreviewHTML) {
+                showNotification('Nothing to reset', '⚠️');
+                return;
+            }
+
+            const previewFrame = document.getElementById('previewFrame');
+            previewFrame.innerHTML = defaultPreviewHTML;
+            isExternalWebsite = false;
+            document.getElementById('previewUrlInput').value = '';
+
+            // Reapply current design system
+            applyDesignSystem();
+            showNotification('Reset to default preview', '↺');
+        }
+
+        function generateCSSVariables() {
+            let css = '';
+            const palette = state.activePalette || state.palettes[state.selectedPalette].colors;
+
+            // Colors
+            palette.forEach((color, i) => {
+                css += `  --color-primary-${i + 1}: ${color};\n`;
+            });
+
+            // Text Colors
+            css += `  --text-heading: ${state.config.textColors.heading};\n`;
+            css += `  --text-body: ${state.config.textColors.body};\n`;
+            css += `  --text-link: ${state.config.textColors.link};\n`;
+            css += `  --text-muted: ${state.config.textColors.muted};\n`;
+
+            // Typography
+            const font = state.fonts[state.selectedFont];
+            css += `  --font-heading: '${font.heading}', sans-serif;\n`;
+            css += `  --font-body: '${font.body}', sans-serif;\n`;
+
+            // Config
+            css += `  --size-base: ${state.config.fontSize}px;\n`;
+            css += `  --line-height: ${state.config.lineHeight};\n`;
+            css += `  --spacing-unit: ${state.config.spacing}px;\n`;
+            css += `  --animation-speed: ${state.config.animation}ms;\n`;
+
+            return css;
+        }
+
+        function applyStylesToIframe(iframe) {
+            try {
+                const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+
+                // Generate CSS from current design system
+                const cssVars = generateCSSVariables();
+                const palette = state.activePalette || state.palettes[state.selectedPalette].colors;
+                const styleEl = iframeDoc.createElement('style');
+                styleEl.textContent = `
+                    :root {
+                        ${cssVars}
+                    }
+                    body {
+                        background-color: ${palette[4]} !important;
+                    }
+                    h1, h2, h3, h4, h5, h6 {
+                        color: ${state.config.textColors.heading} !important;
+                    }
+                    p, span, div {
+                        color: ${state.config.textColors.body} !important;
+                    }
+                    a {
+                        color: ${state.config.textColors.link} !important;
+                    }
+                `;
+                iframeDoc.head.appendChild(styleEl);
+            } catch (e) {
+                throw e; // CORS will throw here
+            }
+        }
+
+        // Initialize on page load
+        window.addEventListener('DOMContentLoaded', function() {
+            saveDefaultPreview();
+        });
+
+        // Text Color Functions
+        function updateTextColor(type, color) {
+            state.config.textColors[type] = color;
+            document.getElementById(`${type}ColorValue`).textContent = color;
+            applyTextColors();
+            saveToHistory();
+        }
+
+        function resetTextColors() {
+            state.config.textColors = {
+                heading: '#000000',
+                body: '#333333',
+                link: '#0066cc',
+                muted: '#666666'
+            };
+
+            // Update UI
+            document.getElementById('headingColor').value = state.config.textColors.heading;
+            document.getElementById('headingColorValue').textContent = state.config.textColors.heading;
+            document.getElementById('bodyColor').value = state.config.textColors.body;
+            document.getElementById('bodyColorValue').textContent = state.config.textColors.body;
+            document.getElementById('linkColor').value = state.config.textColors.link;
+            document.getElementById('linkColorValue').textContent = state.config.textColors.link;
+            document.getElementById('mutedColor').value = state.config.textColors.muted;
+            document.getElementById('mutedColorValue').textContent = state.config.textColors.muted;
+
+            applyTextColors();
+            showNotification('Text colors reset', '🎨');
+        }
+
+        function applyTextColors() {
+            const colors = state.config.textColors;
+
+            // Apply to all headings
+            document.querySelectorAll('.hero-title, .section-title-lg, .feature-title, h1, h2, h3, h4, h5, h6').forEach(el => {
+                el.style.color = colors.heading;
+            });
+
+            // Apply to body text
+            document.querySelectorAll('.hero-subtitle, .feature-text, .section-subtitle, p').forEach(el => {
+                el.style.color = colors.body;
+            });
+
+            // Apply to links
+            document.querySelectorAll('.nav-link').forEach(el => {
+                if (!el.classList.contains('active')) {
+                    el.style.color = colors.link;
+                }
+            });
+
+            // Apply to muted text
+            document.querySelectorAll('.app-version, .slider-tick, .control-value').forEach(el => {
+                el.style.color = colors.muted;
+            });
+        }
+
+        // Page Navigation
+        function navigateToPage(pageName) {
+            // Hide all pages
+            const pages = document.querySelectorAll('.page-content');
+            pages.forEach(page => page.style.display = 'none');
+
+            // Show selected page
+            const selectedPage = document.getElementById(`page-${pageName}`);
+            if (selectedPage) {
+                selectedPage.style.display = 'block';
+            }
+
+            // Update nav links
+            const navLinks = document.querySelectorAll('.nav-link');
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.textContent.toLowerCase() === pageName.toLowerCase() ||
+                    (pageName === 'home' && link.textContent === 'Home')) {
+                    link.classList.add('active');
+                }
+            });
+        }
+
+        // Presets
+        function applyPreset(preset) {
+            const presets = {
+                minimal: {
+                    fontSize: 16,
+                    lineHeight: 1.6,
+                    spacing: 8,
+                    borderRadius: 'sharp',
+                    shadow: 'none'
+                },
+                bold: {
+                    fontSize: 18,
+                    lineHeight: 1.4,
+                    spacing: 12,
+                    borderRadius: 'rounded',
+                    shadow: 'strong'
+                },
+                playful: {
+                    fontSize: 17,
+                    lineHeight: 1.7,
+                    spacing: 10,
+                    borderRadius: 'pill',
+                    shadow: 'subtle'
+                },
+                corporate: {
+                    fontSize: 16,
+                    lineHeight: 1.5,
+                    spacing: 8,
+                    borderRadius: 'sharp',
+                    shadow: 'subtle'
+                },
+                dark: {
+                    fontSize: 16,
+                    lineHeight: 1.6,
+                    spacing: 8,
+                    borderRadius: 'rounded',
+                    shadow: 'strong'
+                }
+            };
+
+            Object.assign(state.config, presets[preset]);
+
+            // Update UI
+            document.getElementById('sizeSlider').value = state.config.fontSize;
+            document.getElementById('sizeValue').textContent = state.config.fontSize + 'px';
+            document.getElementById('lineSlider').value = state.config.lineHeight;
+            document.getElementById('lineValue').textContent = state.config.lineHeight;
+            document.getElementById('spacingSlider').value = state.config.spacing;
+            document.getElementById('spacingValue').textContent = state.config.spacing + 'px';
+
+            if (preset === 'dark') {
+                togglePreviewDark();
+            }
+
+            applyDesignSystem();
+            showNotification(`Applied ${preset} preset`, '✨');
+        }
+
+        // Export Functions
+        function exportDesignSystem() {
+            const system = {
+                colors: state.palettes[state.selectedPalette],
+                typography: state.fonts[state.selectedFont],
+                config: state.config,
+                timestamp: new Date().toISOString()
+            };
+
+            const css = generateCSS(system);
+            downloadFile('design-system.css', css, 'text/css');
+            showNotification('Design system exported!', '📦');
+        }
+
+        function exportCSS() {
+            const css = generateCSS({
+                colors: state.palettes[state.selectedPalette],
+                typography: state.fonts[state.selectedFont],
+                config: state.config
+            });
+            downloadFile('variables.css', css, 'text/css');
+            showNotification('CSS variables exported!', '🎨');
+        }
+
+        function exportJSON() {
+            const tokens = {
+                colors: state.palettes[state.selectedPalette].colors,
+                textColors: state.config.textColors,
+                typography: state.fonts[state.selectedFont],
+                spacing: state.config.spacing,
+                borderRadius: state.config.borderRadius,
+                shadows: state.config.shadow,
+                animation: state.config.animation
+            };
+            downloadFile('design-tokens.json', JSON.stringify(tokens, null, 2), 'application/json');
+            showNotification('Design tokens exported!', '📄');
+        }
+
+        function generateCSS(system) {
+            let css = ':root {\n';
+
+            // Colors
+            if (system.colors) {
+                system.colors.colors.forEach((color, i) => {
+                    css += `  --color-primary-${i + 1}: ${color};\n`;
+                });
+            }
+
+            // Typography
+            if (system.typography) {
+                css += `  --font-heading: '${system.typography.heading}', sans-serif;\n`;
+                css += `  --font-body: '${system.typography.body}', sans-serif;\n`;
+            }
+
+            // Config
+            if (system.config) {
+                css += `  --size-base: ${system.config.fontSize}px;\n`;
+                css += `  --line-height: ${system.config.lineHeight};\n`;
+                css += `  --spacing-unit: ${system.config.spacing}px;\n`;
+                css += `  --animation-speed: ${system.config.animation}ms;\n`;
+
+                // Text Colors
+                if (system.config.textColors) {
+                    css += `  --text-heading: ${system.config.textColors.heading};\n`;
+                    css += `  --text-body: ${system.config.textColors.body};\n`;
+                    css += `  --text-link: ${system.config.textColors.link};\n`;
+                    css += `  --text-muted: ${system.config.textColors.muted};\n`;
+                }
+            }
+
+            css += '}';
+            return css;
+        }
+
+        // Storage Functions
+        function saveConfig() {
+            const config = {
+                state: state,
+                timestamp: new Date().toISOString()
+            };
+            const json = JSON.stringify(config, null, 2);
+            downloadFile('spectrum-config.json', json, 'application/json');
+            localStorage.setItem('spectrumConfig', json);
+            showNotification('Configuration saved!', '💾');
+        }
+
+        function loadConfig() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        const config = JSON.parse(event.target.result);
+                        Object.assign(state, config.state);
+                        renderPalettes();
+                        renderFonts();
+                        applyDesignSystem();
+                        showNotification('Configuration loaded!', '📂');
+                    } catch(err) {
+                        showNotification('Invalid configuration file', '❌');
+                    }
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        }
+
+        function saveToHistory() {
+            state.history = state.history.slice(0, state.historyIndex + 1);
+            state.history.push(JSON.parse(JSON.stringify(state.palettes)));
+            state.historyIndex++;
+            if (state.history.length > 20) {
+                state.history.shift();
+                state.historyIndex--;
+            }
+        }
+
+        function undo() {
+            if (state.historyIndex > 0) {
+                state.historyIndex--;
+                state.palettes = JSON.parse(JSON.stringify(state.history[state.historyIndex]));
+                renderPalettes();
+                applyDesignSystem();
+                showNotification('Undone', '↶');
+            }
+        }
+
+        function redo() {
+            if (state.historyIndex < state.history.length - 1) {
+                state.historyIndex++;
+                state.palettes = JSON.parse(JSON.stringify(state.history[state.historyIndex]));
+                renderPalettes();
+                applyDesignSystem();
+                showNotification('Redone', '↷');
+            }
+        }
+
+        function loadFromLocalStorage() {
+            const saved = localStorage.getItem('spectrumConfig');
+            if (saved) {
+                try {
+                    const config = JSON.parse(saved);
+                    Object.assign(state, config.state);
+                } catch(err) {
+                    console.error('Failed to load saved config');
+                }
+            }
+        }
+
+        function saveToLocalStorage() {
+            const config = { state, timestamp: new Date().toISOString() };
+            localStorage.setItem('spectrumConfig', JSON.stringify(config));
+        }
+
+        // Utility Functions
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                showNotification(`Copied: ${text}`, '📋');
+            });
+        }
+
+        function downloadFile(filename, content, type) {
+            const blob = new Blob([content], { type });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function showNotification(text, icon = '✓') {
+            const notification = document.getElementById('notification');
+            document.getElementById('notificationIcon').textContent = icon;
+            document.getElementById('notificationText').textContent = text;
+            notification.classList.add('show');
+            setTimeout(() => notification.classList.remove('show'), 3000);
+        }
+
+        function showKeyboardShortcuts() {
+            document.getElementById('shortcutsModal').classList.add('show');
+            document.addEventListener('click', closeModalOnOutsideClick);
+        }
+
+        function closeModalOnOutsideClick(e) {
+            const modal = document.getElementById('shortcutsModal');
+            if (e.target === modal) {
+                modal.classList.remove('show');
+                document.removeEventListener('click', closeModalOnOutsideClick);
+            }
+        }
+
+        // Keyboard Shortcuts
+        function setupKeyboardShortcuts() {
+            document.addEventListener('keydown', (e) => {
+                if (e.ctrlKey || e.metaKey) {
+                    switch(e.key) {
+                        case 'g':
+                        case 'G':
+                            e.preventDefault();
+                            generatePalettes();
+                            break;
+                        case 'e':
+                        case 'E':
+                            e.preventDefault();
+                            exportDesignSystem();
+                            break;
+                        case 'd':
+                        case 'D':
+                            e.preventDefault();
+                            toggleDarkMode();
+                            break;
+                        case 's':
+                        case 'S':
+                            e.preventDefault();
+                            saveConfig();
+                            break;
+                        case 'o':
+                        case 'O':
+                            e.preventDefault();
+                            loadConfig();
+                            break;
+                        case 'z':
+                        case 'Z':
+                            e.preventDefault();
+                            if (e.shiftKey) {
+                                redo();
+                            } else {
+                                undo();
+                            }
+                            break;
+                        case '\\':
+                            e.preventDefault();
+                            togglePanel();
+                            break;
+                    }
+                }
+
+                if (e.key === 'Escape') {
+                    document.getElementById('shortcutsModal').classList.remove('show');
+                }
+            });
+        }
+
+        // Auto-save
+        setInterval(saveToLocalStorage, 30000);
+    </script>
+</body>
+</html>
