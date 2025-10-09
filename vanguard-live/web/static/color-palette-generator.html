@@ -1837,11 +1837,74 @@
                 <!-- Colors Tab -->
                 <div class="tab-pane active" id="tab-colors">
                     <div class="section">
-                        <div class="section-header">
-                            <div class="section-title">Color Palettes</div>
-                            <div class="section-action" onclick="generatePalettes()">Generate New</div>
+                        <div class="section-header" style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+                            <div class="section-title" style="flex-shrink: 0;">Color Palettes</div>
+                            <input type="text" id="quickPromptInput" placeholder="e.g., ocean, corporate, forest..."
+                                   style="flex: 1; min-width: 200px; padding: 0.5rem 0.75rem; border: 2px solid var(--border-primary); border-radius: var(--radius-md); font-size: 0.875rem; background: var(--surface-primary); color: var(--text-primary);"
+                                   onkeydown="if(event.key==='Enter') generateFromQuickPrompt()" />
+                            <div class="section-action" onclick="generateFromQuickPrompt()" style="flex-shrink: 0;">Generate</div>
                         </div>
                         <div id="palettesContainer"></div>
+                    </div>
+
+                    <!-- Seed Colors Section -->
+                    <div class="section">
+                        <div class="section-header">
+                            <div class="section-title">🎯 Seed Colors</div>
+                            <div class="section-action" onclick="generateFromSeeds()">Generate</div>
+                        </div>
+                        <div class="section-subtitle" style="margin-bottom: 1rem; font-size: 0.85rem; color: var(--text-secondary);">
+                            Add reference colors to guide palette generation
+                        </div>
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; margin-bottom: 0.75rem;">
+                            <div>
+                                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.25rem; color: var(--text-secondary);">Color 1</label>
+                                <input type="color" id="seedColor1" class="color-input" value="#6366f1" style="width: 100%; height: 50px;">
+                            </div>
+                            <div>
+                                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.25rem; color: var(--text-secondary);">Color 2</label>
+                                <input type="color" id="seedColor2" class="color-input" value="#8b5cf6" style="width: 100%; height: 50px;">
+                            </div>
+                            <div>
+                                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.25rem; color: var(--text-secondary);">Color 3</label>
+                                <input type="color" id="seedColor3" class="color-input" value="#ec4899" style="width: 100%; height: 50px;">
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button onclick="clearSeedColors()" style="flex: 1; padding: 0.5rem; border: 1px solid var(--border-primary); background: transparent; color: var(--text-primary); border-radius: var(--radius-md); cursor: pointer; font-size: 0.85rem;">
+                                Clear
+                            </button>
+                            <button onclick="randomizeSeedColors()" style="flex: 1; padding: 0.5rem; border: 1px solid var(--border-primary); background: transparent; color: var(--text-primary); border-radius: var(--radius-md); cursor: pointer; font-size: 0.85rem;">
+                                Randomize
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Logo Upload Section -->
+                    <div class="section">
+                        <div class="section-header">
+                            <div class="section-title">🖼️ Extract from Logo</div>
+                        </div>
+                        <div class="section-subtitle" style="margin-bottom: 1rem; font-size: 0.85rem; color: var(--text-secondary);">
+                            Upload a logo to extract colors automatically
+                        </div>
+                        <div style="position: relative;">
+                            <input type="file" id="logoUpload" accept="image/*" onchange="handleLogoUpload(event)" style="display: none;">
+                            <button onclick="document.getElementById('logoUpload').click()" style="width: 100%; padding: 1rem; border: 2px dashed var(--border-primary); background: var(--surface-secondary); color: var(--text-primary); border-radius: var(--radius-md); cursor: pointer; font-size: 0.9rem; transition: all 0.2s;">
+                                📁 Choose Logo File
+                            </button>
+                        </div>
+                        <div id="logoPreview" style="margin-top: 1rem; display: none;">
+                            <div style="text-align: center; margin-bottom: 0.5rem;">
+                                <img id="logoImage" style="max-width: 100%; max-height: 120px; border-radius: var(--radius-md); box-shadow: var(--shadow-md);">
+                            </div>
+                            <div style="display: flex; gap: 0.5rem; align-items: center; margin-top: 0.75rem; padding: 0.75rem; background: var(--surface-secondary); border-radius: var(--radius-md);">
+                                <div id="extractedColorsPreview" style="display: flex; gap: 0.5rem; flex: 1;"></div>
+                                <button onclick="generateFromExtractedColors()" style="padding: 0.5rem 1rem; background: var(--accent-primary); color: white; border: none; border-radius: var(--radius-md); cursor: pointer; font-size: 0.85rem; white-space: nowrap;">
+                                    Use Colors
+                                </button>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="section">
@@ -1886,6 +1949,42 @@
                                     </div>
                                 </label>
                             </div>
+                            <div class="color-input-group">
+                                <label class="color-label">
+                                    <span class="color-label-text">Accent/Price</span>
+                                    <div class="color-input-wrapper">
+                                        <input type="color" id="accentColor" class="color-input" value="#6366f1" onchange="updateTextColor('accent', this.value)">
+                                        <span class="color-value" id="accentColorValue">#6366f1</span>
+                                    </div>
+                                </label>
+                            </div>
+                            <div class="color-input-group">
+                                <label class="color-label">
+                                    <span class="color-label-text">Primary Button</span>
+                                    <div class="color-input-wrapper">
+                                        <input type="color" id="buttonPrimaryColor" class="color-input" value="#FFFFFF" onchange="updateTextColor('buttonPrimary', this.value)">
+                                        <span class="color-value" id="buttonPrimaryColorValue">#FFFFFF</span>
+                                    </div>
+                                </label>
+                            </div>
+                            <div class="color-input-group">
+                                <label class="color-label">
+                                    <span class="color-label-text">Secondary Button</span>
+                                    <div class="color-input-wrapper">
+                                        <input type="color" id="buttonSecondaryColor" class="color-input" value="#667eea" onchange="updateTextColor('buttonSecondary', this.value)">
+                                        <span class="color-value" id="buttonSecondaryColorValue">#667eea</span>
+                                    </div>
+                                </label>
+                            </div>
+                            <div class="color-input-group">
+                                <label class="color-label">
+                                    <span class="color-label-text">Nav Brand</span>
+                                    <div class="color-input-wrapper">
+                                        <input type="color" id="navBrandColor" class="color-input" value="#667eea" onchange="updateTextColor('navBrand', this.value)">
+                                        <span class="color-value" id="navBrandColorValue">#667eea</span>
+                                    </div>
+                                </label>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1925,6 +2024,78 @@
                                     <span class="slider-tick">Normal</span>
                                     <span class="slider-tick">Loose</span>
                                 </div>
+                            </div>
+                        </div>
+
+                        <div class="section-header" style="margin-top: 2rem;">
+                            <div class="section-title">Heading Sizes</div>
+                        </div>
+
+                        <div class="control-group">
+                            <div class="control-label">
+                                <span class="control-title">H1 Size</span>
+                                <span class="control-value" id="h1SizeValue">2.5rem</span>
+                            </div>
+                            <div class="slider-container">
+                                <input type="range" class="slider" id="h1SizeSlider" min="2" max="5" step="0.25" value="2.5" oninput="updateHeadingSize('h1', this.value)">
+                            </div>
+                        </div>
+
+                        <div class="control-group">
+                            <div class="control-label">
+                                <span class="control-title">H2 Size</span>
+                                <span class="control-value" id="h2SizeValue">2rem</span>
+                            </div>
+                            <div class="slider-container">
+                                <input type="range" class="slider" id="h2SizeSlider" min="1.5" max="4" step="0.25" value="2" oninput="updateHeadingSize('h2', this.value)">
+                            </div>
+                        </div>
+
+                        <div class="control-group">
+                            <div class="control-label">
+                                <span class="control-title">H3 Size</span>
+                                <span class="control-value" id="h3SizeValue">1.5rem</span>
+                            </div>
+                            <div class="slider-container">
+                                <input type="range" class="slider" id="h3SizeSlider" min="1.25" max="3" step="0.125" value="1.5" oninput="updateHeadingSize('h3', this.value)">
+                            </div>
+                        </div>
+
+                        <div class="control-group">
+                            <div class="control-label">
+                                <span class="control-title">H4 Size</span>
+                                <span class="control-value" id="h4SizeValue">1.25rem</span>
+                            </div>
+                            <div class="slider-container">
+                                <input type="range" class="slider" id="h4SizeSlider" min="1" max="2" step="0.125" value="1.25" oninput="updateHeadingSize('h4', this.value)">
+                            </div>
+                        </div>
+
+                        <div class="section-header" style="margin-top: 2rem;">
+                            <div class="section-title">Element Sizes</div>
+                        </div>
+
+                        <div class="control-group">
+                            <div class="control-label">
+                                <span class="control-title">Button Size</span>
+                                <span class="control-value" id="buttonSizeValue">Medium</span>
+                            </div>
+                            <div class="option-grid">
+                                <button class="option-btn" onclick="setButtonSize('small')">Small</button>
+                                <button class="option-btn active" onclick="setButtonSize('medium')">Medium</button>
+                                <button class="option-btn" onclick="setButtonSize('large')">Large</button>
+                            </div>
+                        </div>
+
+                        <div class="control-group">
+                            <div class="control-label">
+                                <span class="control-title">Input Size</span>
+                                <span class="control-value" id="inputSizeValue">Medium</span>
+                            </div>
+                            <div class="option-grid">
+                                <button class="option-btn" onclick="setInputSize('small')">Small</button>
+                                <button class="option-btn active" onclick="setInputSize('medium')">Medium</button>
+                                <button class="option-btn" onclick="setInputSize('large')">Large</button>
                             </div>
                         </div>
                     </div>
@@ -1969,6 +2140,67 @@
                                 <button class="option-btn" onclick="setWidth('wide')">Wide</button>
                             </div>
                         </div>
+
+                        <div class="section-header" style="margin-top: 2rem;">
+                            <div class="section-title">Advanced Spacing</div>
+                        </div>
+
+                        <div class="control-group">
+                            <div class="control-label">
+                                <span class="control-title">Section Padding</span>
+                                <span class="control-value" id="sectionPaddingValue">4rem</span>
+                            </div>
+                            <div class="slider-container">
+                                <input type="range" class="slider" id="sectionPaddingSlider" min="2" max="8" step="0.5" value="4" oninput="updateSectionPadding(this.value)">
+                                <div class="slider-ticks">
+                                    <span class="slider-tick">Tight</span>
+                                    <span class="slider-tick">Normal</span>
+                                    <span class="slider-tick">Spacious</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="control-group">
+                            <div class="control-label">
+                                <span class="control-title">Card Padding</span>
+                                <span class="control-value" id="cardPaddingValue">1.5rem</span>
+                            </div>
+                            <div class="slider-container">
+                                <input type="range" class="slider" id="cardPaddingSlider" min="0.5" max="3" step="0.25" value="1.5" oninput="updateCardPadding(this.value)">
+                            </div>
+                        </div>
+
+                        <div class="control-group">
+                            <div class="control-label">
+                                <span class="control-title">Element Gap</span>
+                                <span class="control-value" id="elementGapValue">1rem</span>
+                            </div>
+                            <div class="slider-container">
+                                <input type="range" class="slider" id="elementGapSlider" min="0.25" max="3" step="0.25" value="1" oninput="updateElementGap(this.value)">
+                            </div>
+                        </div>
+
+                        <div class="control-group">
+                            <div class="control-label">
+                                <span class="control-title">Grid Gap</span>
+                                <span class="control-value" id="gridGapValue">2rem</span>
+                            </div>
+                            <div class="slider-container">
+                                <input type="range" class="slider" id="gridGapSlider" min="0.5" max="4" step="0.25" value="2" oninput="updateGridGap(this.value)">
+                            </div>
+                        </div>
+
+                        <div class="control-group">
+                            <div class="control-label">
+                                <span class="control-title">Button Padding</span>
+                                <span class="control-value" id="buttonPaddingValue">Medium</span>
+                            </div>
+                            <div class="option-grid">
+                                <button class="option-btn" onclick="setButtonPadding('compact')">Compact</button>
+                                <button class="option-btn active" onclick="setButtonPadding('medium')">Medium</button>
+                                <button class="option-btn" onclick="setButtonPadding('generous')">Generous</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -2003,12 +2235,66 @@
 
                         <div class="control-group">
                             <div class="control-label">
+                                <span class="control-title">Letter Spacing</span>
+                                <span class="control-value" id="letterSpacingValue">0px</span>
+                            </div>
+                            <div class="slider-container">
+                                <input type="range" class="slider" id="letterSpacingSlider" min="-2" max="4" step="0.5" value="0" oninput="updateLetterSpacing()">
+                                <div class="slider-ticks">
+                                    <span class="slider-tick">Tight</span>
+                                    <span class="slider-tick">Normal</span>
+                                    <span class="slider-tick">Wide</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="control-group">
+                            <div class="control-label">
+                                <span class="control-title">Gradient Angle</span>
+                                <span class="control-value" id="gradientAngleValue">135°</span>
+                            </div>
+                            <div class="slider-container">
+                                <input type="range" class="slider" id="gradientAngleSlider" min="0" max="360" step="15" value="135" oninput="updateGradientAngle()">
+                                <div class="slider-ticks">
+                                    <span class="slider-tick">0°</span>
+                                    <span class="slider-tick">180°</span>
+                                    <span class="slider-tick">360°</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="control-group">
+                            <div class="control-label">
+                                <span class="control-title">Button Hover Scale</span>
+                                <span class="control-value" id="buttonHoverScaleValue">1.05</span>
+                            </div>
+                            <div class="slider-container">
+                                <input type="range" class="slider" id="buttonHoverScaleSlider" min="1" max="1.15" step="0.01" value="1.05" oninput="updateButtonHoverScale()">
+                                <div class="slider-ticks">
+                                    <span class="slider-tick">None</span>
+                                    <span class="slider-tick">Medium</span>
+                                    <span class="slider-tick">Large</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="control-group">
+                            <div class="control-label">
+                                <span class="control-title">Link Hover Color</span>
+                            </div>
+                            <div class="color-input-wrapper" style="margin-top: 0.5rem;">
+                                <input type="color" id="linkHoverColor" class="color-input" value="#0052a3" onchange="updateLinkHoverColor(this.value)">
+                                <span class="color-value" id="linkHoverColorValue">#0052a3</span>
+                            </div>
+                        </div>
+
+                        <div class="control-group">
+                            <div class="control-label">
                                 <span class="control-title">Visual Effects</span>
                             </div>
                             <div class="option-grid">
-                                <button class="option-btn" onclick="toggleEffect('blur')">Blur</button>
-                                <button class="option-btn" onclick="toggleEffect('gradient')">Gradients</button>
-                                <button class="option-btn" onclick="toggleEffect('glow')">Glow</button>
+                                <button class="option-btn" id="textShadowBtn" onclick="toggleTextShadow()">Text Shadow</button>
+                                <button class="option-btn active" id="cardHoverBtn" onclick="toggleCardHover()">Card Hover</button>
                             </div>
                         </div>
                     </div>
@@ -2250,7 +2536,7 @@
                                 <div class="feature-card">
                                     <div class="feature-icon">🎯</div>
                                     <h3 class="feature-title">Starter</h3>
-                                    <div style="font-size: 2rem; margin: 1rem 0; color: var(--accent-primary);">$9/mo</div>
+                                    <div class="price-text" style="font-size: 2rem; margin: 1rem 0;">$9/mo</div>
                                     <p class="feature-text">Perfect for individuals and small projects.</p>
                                     <ul style="text-align: left; margin: 1rem 0; padding-left: 1.5rem;">
                                         <li>5 Projects</li>
@@ -2263,7 +2549,7 @@
                                 <div class="feature-card" style="border: 2px solid var(--accent-primary);">
                                     <div class="feature-icon">⭐</div>
                                     <h3 class="feature-title">Professional</h3>
-                                    <div style="font-size: 2rem; margin: 1rem 0; color: var(--accent-primary);">$29/mo</div>
+                                    <div class="price-text" style="font-size: 2rem; margin: 1rem 0;">$29/mo</div>
                                     <p class="feature-text">Best for growing teams and businesses.</p>
                                     <ul style="text-align: left; margin: 1rem 0; padding-left: 1.5rem;">
                                         <li>Unlimited Projects</li>
@@ -2277,7 +2563,7 @@
                                 <div class="feature-card">
                                     <div class="feature-icon">🚀</div>
                                     <h3 class="feature-title">Enterprise</h3>
-                                    <div style="font-size: 2rem; margin: 1rem 0; color: var(--accent-primary);">Custom</div>
+                                    <div class="price-text" style="font-size: 2rem; margin: 1rem 0;">Custom</div>
                                     <p class="feature-text">Tailored solutions for large organizations.</p>
                                     <ul style="text-align: left; margin: 1rem 0; padding-left: 1.5rem;">
                                         <li>Unlimited Everything</li>
@@ -2553,12 +2839,60 @@
             palettes: [],
             selectedPalette: 0,
             fonts: [
+                // Modern & Clean
                 { heading: 'Inter', body: 'Inter', name: 'Modern Clean' },
-                { heading: 'Playfair Display', body: 'Source Sans Pro', name: 'Editorial' },
                 { heading: 'Space Grotesk', body: 'Inter', name: 'Tech Forward' },
-                { heading: 'Montserrat', body: 'Open Sans', name: 'Professional' },
-                { heading: 'Poppins', body: 'Poppins', name: 'Friendly' },
+                { heading: 'Outfit', body: 'Inter', name: 'Contemporary' },
+                { heading: 'Work Sans', body: 'Work Sans', name: 'Workspace' },
+                { heading: 'Manrope', body: 'Manrope', name: 'Geometric' },
+
+                // Editorial & Serif
+                { heading: 'Playfair Display', body: 'Source Sans Pro', name: 'Editorial' },
                 { heading: 'DM Serif Display', body: 'DM Sans', name: 'Elegant' },
+                { heading: 'Crimson Pro', body: 'Lato', name: 'Classic Editorial' },
+                { heading: 'Libre Baskerville', body: 'Open Sans', name: 'Traditional' },
+                { heading: 'Merriweather', body: 'Merriweather Sans', name: 'Scholarly' },
+                { heading: 'Lora', body: 'Source Sans Pro', name: 'Refined' },
+                { heading: 'Spectral', body: 'Karla', name: 'Literary' },
+
+                // Professional & Business
+                { heading: 'Montserrat', body: 'Open Sans', name: 'Professional' },
+                { heading: 'Raleway', body: 'Roboto', name: 'Corporate' },
+                { heading: 'Nunito Sans', body: 'Nunito Sans', name: 'Business Casual' },
+                { heading: 'Rubik', body: 'Open Sans', name: 'Tech Business' },
+                { heading: 'IBM Plex Sans', body: 'IBM Plex Sans', name: 'Enterprise' },
+
+                // Friendly & Approachable
+                { heading: 'Poppins', body: 'Poppins', name: 'Friendly' },
+                { heading: 'Quicksand', body: 'Quicksand', name: 'Playful' },
+                { heading: 'Comfortaa', body: 'Open Sans', name: 'Soft & Round' },
+                { heading: 'Varela Round', body: 'Varela Round', name: 'Gentle' },
+                { heading: 'Nunito', body: 'Nunito', name: 'Welcoming' },
+
+                // Bold & Impactful
+                { heading: 'Bebas Neue', body: 'Open Sans', name: 'Bold Statement' },
+                { heading: 'Oswald', body: 'Roboto', name: 'Strong' },
+                { heading: 'Anton', body: 'Roboto', name: 'Heavy Impact' },
+                { heading: 'Archivo Black', body: 'Archivo', name: 'Powerful' },
+
+                // Creative & Unique
+                { heading: 'Righteous', body: 'Lato', name: 'Creative Bold' },
+                { heading: 'Sora', body: 'Sora', name: 'Tech Modern' },
+                { heading: 'Epilogue', body: 'Epilogue', name: 'Sleek' },
+                { heading: 'Plus Jakarta Sans', body: 'Plus Jakarta Sans', name: 'Indonesian Modern' },
+                { heading: 'Lexend', body: 'Lexend', name: 'Readability First' },
+
+                // Elegant & Luxury
+                { heading: 'Cormorant Garamond', body: 'Montserrat', name: 'Luxury Serif' },
+                { heading: 'Cinzel', body: 'Raleway', name: 'Upscale' },
+                { heading: 'Bodoni Moda', body: 'Lato', name: 'High Fashion' },
+                { heading: 'Oranienbaum', body: 'Open Sans', name: 'Elegant Classic' },
+
+                // Monospace & Tech
+                { heading: 'JetBrains Mono', body: 'Inter', name: 'Developer' },
+                { heading: 'Fira Code', body: 'Fira Sans', name: 'Code First' },
+                { heading: 'IBM Plex Mono', body: 'IBM Plex Sans', name: 'Tech Mono' },
+                { heading: 'Space Mono', body: 'Work Sans', name: 'Space Age' },
             ],
             selectedFont: 0,
             config: {
@@ -2570,11 +2904,35 @@
                 animation: 300,
                 theme: 'light',
                 previewDark: false,
+                letterSpacing: 0,
+                textShadow: false,
+                linkHoverColor: '#0052a3',
+                buttonHoverScale: 1.05,
+                cardHoverShadow: true,
+                gradientAngle: 135,
+                // Heading Sizes
+                h1Size: 2.5,
+                h2Size: 2,
+                h3Size: 1.5,
+                h4Size: 1.25,
+                // Element Sizes
+                buttonSize: 'medium',
+                inputSize: 'medium',
+                // Advanced Spacing
+                sectionPadding: 4,
+                cardPadding: 1.5,
+                elementGap: 1,
+                gridGap: 2,
+                buttonPadding: 'medium',
                 textColors: {
                     heading: '#000000',
                     body: '#333333',
                     link: '#0066cc',
-                    muted: '#666666'
+                    muted: '#666666',
+                    accent: '#6366f1',
+                    buttonPrimary: '#FFFFFF',
+                    buttonSecondary: '#667eea',
+                    navBrand: '#667eea'
                 }
             },
             history: [],
@@ -2899,6 +3257,14 @@
                 document.getElementById('linkColorValue').textContent = state.config.textColors.link;
                 document.getElementById('mutedColor').value = state.config.textColors.muted;
                 document.getElementById('mutedColorValue').textContent = state.config.textColors.muted;
+                document.getElementById('accentColor').value = state.config.textColors.accent || '#6366f1';
+                document.getElementById('accentColorValue').textContent = state.config.textColors.accent || '#6366f1';
+                document.getElementById('buttonPrimaryColor').value = state.config.textColors.buttonPrimary || '#FFFFFF';
+                document.getElementById('buttonPrimaryColorValue').textContent = state.config.textColors.buttonPrimary || '#FFFFFF';
+                document.getElementById('buttonSecondaryColor').value = state.config.textColors.buttonSecondary || '#667eea';
+                document.getElementById('buttonSecondaryColorValue').textContent = state.config.textColors.buttonSecondary || '#667eea';
+                document.getElementById('navBrandColor').value = state.config.textColors.navBrand || '#667eea';
+                document.getElementById('navBrandColorValue').textContent = state.config.textColors.navBrand || '#667eea';
             }
         }
 
@@ -3329,6 +3695,256 @@
             showNotification('New palettes generated!', '🎨');
         }
 
+        // Seed Colors Functions
+        let extractedColors = [];
+
+        function generateFromSeeds() {
+            const seed1 = document.getElementById('seedColor1').value;
+            const seed2 = document.getElementById('seedColor2').value;
+            const seed3 = document.getElementById('seedColor3').value;
+
+            state.palettes = [];
+            for(let i = 0; i < 8; i++) {
+                state.palettes.push(generatePaletteFromSeeds([seed1, seed2, seed3]));
+            }
+            renderPalettes();
+            selectPalette(0);
+            saveToHistory();
+            showNotification('Palettes generated from seed colors!', '🎯');
+        }
+
+        function generatePaletteFromSeeds(seeds) {
+            const palette = [];
+
+            // Use the seed colors as base
+            const seedHSLs = seeds.map(hexToHSL);
+
+            // Add variations of seed colors
+            palette.push(seeds[0]); // Primary seed
+
+            // Create analogous color from seed 1
+            const analogous = hslToHex(
+                (seedHSLs[0].h + 30) % 360,
+                seedHSLs[0].s,
+                seedHSLs[0].l
+            );
+            palette.push(analogous);
+
+            palette.push(seeds[1]); // Secondary seed
+
+            // Create a lighter variant
+            const lighter = hslToHex(
+                seedHSLs[2].h,
+                Math.max(20, seedHSLs[2].s - 20),
+                Math.min(90, seedHSLs[2].l + 20)
+            );
+            palette.push(lighter);
+
+            // Create accent color
+            const accent = hslToHex(
+                (seedHSLs[0].h + 180) % 360,
+                Math.min(90, seedHSLs[0].s + 20),
+                seedHSLs[0].l
+            );
+            palette.push(accent);
+
+            return {
+                colors: palette,
+                name: 'From Seeds',
+                contrast: 'aa'
+            };
+        }
+
+        function hexToHSL(hex) {
+            const r = parseInt(hex.slice(1, 3), 16) / 255;
+            const g = parseInt(hex.slice(3, 5), 16) / 255;
+            const b = parseInt(hex.slice(5, 7), 16) / 255;
+
+            const max = Math.max(r, g, b);
+            const min = Math.min(r, g, b);
+            let h, s, l = (max + min) / 2;
+
+            if (max === min) {
+                h = s = 0;
+            } else {
+                const d = max - min;
+                s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+
+                switch (max) {
+                    case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+                    case g: h = ((b - r) / d + 2) / 6; break;
+                    case b: h = ((r - g) / d + 4) / 6; break;
+                }
+            }
+
+            return {
+                h: h * 360,
+                s: s * 100,
+                l: l * 100
+            };
+        }
+
+        function clearSeedColors() {
+            document.getElementById('seedColor1').value = '#6366f1';
+            document.getElementById('seedColor2').value = '#8b5cf6';
+            document.getElementById('seedColor3').value = '#ec4899';
+            showNotification('Seed colors cleared', '🧹');
+        }
+
+        function randomizeSeedColors() {
+            document.getElementById('seedColor1').value = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
+            document.getElementById('seedColor2').value = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
+            document.getElementById('seedColor3').value = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
+            showNotification('Seed colors randomized!', '🎲');
+        }
+
+        // Logo Upload and Color Extraction
+        function handleLogoUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    document.getElementById('logoImage').src = e.target.result;
+                    document.getElementById('logoPreview').style.display = 'block';
+
+                    // Extract colors from image
+                    extractedColors = extractColorsFromImage(img);
+                    displayExtractedColors(extractedColors);
+                    showNotification('Colors extracted from logo!', '🎨');
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function extractColorsFromImage(img) {
+            // Create canvas to analyze image
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+
+            // Scale down for performance
+            const maxSize = 100;
+            const scale = Math.min(maxSize / img.width, maxSize / img.height);
+            canvas.width = img.width * scale;
+            canvas.height = img.height * scale;
+
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const pixels = imageData.data;
+
+            // Color quantization - find dominant colors
+            const colorMap = {};
+            const step = 4; // Sample every 4th pixel for speed
+
+            for (let i = 0; i < pixels.length; i += step * 4) {
+                const r = pixels[i];
+                const g = pixels[i + 1];
+                const b = pixels[i + 2];
+                const a = pixels[i + 3];
+
+                // Skip transparent and very light/dark pixels
+                if (a < 128 || (r > 240 && g > 240 && b > 240) || (r < 15 && g < 15 && b < 15)) continue;
+
+                // Bucket colors into ranges for better clustering
+                const bucketR = Math.floor(r / 32) * 32;
+                const bucketG = Math.floor(g / 32) * 32;
+                const bucketB = Math.floor(b / 32) * 32;
+                const key = `${bucketR},${bucketG},${bucketB}`;
+
+                colorMap[key] = (colorMap[key] || 0) + 1;
+            }
+
+            // Sort by frequency and get top colors
+            const sortedColors = Object.entries(colorMap)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 10) // Get top 10
+                .map(([color]) => {
+                    const [r, g, b] = color.split(',').map(Number);
+                    return rgbToHex(r, g, b);
+                });
+
+            // Filter to get diverse colors
+            const diverseColors = [];
+            for (const color of sortedColors) {
+                if (diverseColors.length === 0 || !isSimilarToAny(color, diverseColors)) {
+                    diverseColors.push(color);
+                    if (diverseColors.length >= 5) break;
+                }
+            }
+
+            return diverseColors;
+        }
+
+        function rgbToHex(r, g, b) {
+            return '#' + [r, g, b].map(x => {
+                const hex = x.toString(16);
+                return hex.length === 1 ? '0' + hex : hex;
+            }).join('');
+        }
+
+        function isSimilarToAny(color, colors) {
+            const rgb1 = hexToRGB(color);
+            for (const c of colors) {
+                const rgb2 = hexToRGB(c);
+                const distance = Math.sqrt(
+                    Math.pow(rgb1.r - rgb2.r, 2) +
+                    Math.pow(rgb1.g - rgb2.g, 2) +
+                    Math.pow(rgb1.b - rgb2.b, 2)
+                );
+                if (distance < 80) return true; // Colors are too similar
+            }
+            return false;
+        }
+
+        function hexToRGB(hex) {
+            return {
+                r: parseInt(hex.slice(1, 3), 16),
+                g: parseInt(hex.slice(3, 5), 16),
+                b: parseInt(hex.slice(5, 7), 16)
+            };
+        }
+
+        function displayExtractedColors(colors) {
+            const container = document.getElementById('extractedColorsPreview');
+            container.innerHTML = '';
+
+            colors.forEach(color => {
+                const colorDiv = document.createElement('div');
+                colorDiv.style.cssText = `
+                    width: 40px;
+                    height: 40px;
+                    background: ${color};
+                    border-radius: var(--radius-md);
+                    border: 2px solid var(--border-primary);
+                    cursor: pointer;
+                    transition: transform 0.2s;
+                `;
+                colorDiv.title = color;
+                colorDiv.onmouseover = () => colorDiv.style.transform = 'scale(1.1)';
+                colorDiv.onmouseout = () => colorDiv.style.transform = 'scale(1)';
+                container.appendChild(colorDiv);
+            });
+        }
+
+        function generateFromExtractedColors() {
+            if (extractedColors.length === 0) {
+                showNotification('No colors extracted yet', '⚠️');
+                return;
+            }
+
+            state.palettes = [];
+            for(let i = 0; i < 8; i++) {
+                state.palettes.push(generatePaletteFromSeeds(extractedColors.slice(0, 3)));
+            }
+            renderPalettes();
+            selectPalette(0);
+            saveToHistory();
+            showNotification('Palettes generated from logo!', '🖼️');
+        }
+
         function renderPalettes() {
             const container = document.getElementById('palettesContainer');
             container.innerHTML = '';
@@ -3503,6 +4119,214 @@
             applyDesignSystem();
         }
 
+        function updateLetterSpacing() {
+            const value = document.getElementById('letterSpacingSlider').value;
+            state.config.letterSpacing = parseFloat(value);
+            document.getElementById('letterSpacingValue').textContent = value + 'px';
+            applyDesignSystem();
+        }
+
+        function updateGradientAngle() {
+            const value = document.getElementById('gradientAngleSlider').value;
+            state.config.gradientAngle = parseInt(value);
+            document.getElementById('gradientAngleValue').textContent = value + '°';
+            applyDesignSystem();
+        }
+
+        function updateButtonHoverScale() {
+            const value = document.getElementById('buttonHoverScaleSlider').value;
+            state.config.buttonHoverScale = parseFloat(value);
+            document.getElementById('buttonHoverScaleValue').textContent = value;
+            applyDesignSystem();
+        }
+
+        function updateLinkHoverColor(color) {
+            state.config.linkHoverColor = color;
+            document.getElementById('linkHoverColorValue').textContent = color;
+            applyDesignSystem();
+        }
+
+        function toggleTextShadow() {
+            state.config.textShadow = !state.config.textShadow;
+            document.getElementById('textShadowBtn').classList.toggle('active');
+            applyDesignSystem();
+        }
+
+        function toggleCardHover() {
+            state.config.cardHoverShadow = !state.config.cardHoverShadow;
+            document.getElementById('cardHoverBtn').classList.toggle('active');
+            applyDesignSystem();
+        }
+
+        // Heading Size Controls
+        function updateHeadingSize(heading, value) {
+            const size = parseFloat(value);
+            state.config[`${heading}Size`] = size;
+            document.getElementById(`${heading}SizeValue`).textContent = size + 'rem';
+            applyDesignSystem();
+        }
+
+        // Element Size Controls
+        function setButtonSize(size) {
+            state.config.buttonSize = size;
+            document.getElementById('buttonSizeValue').textContent = size.charAt(0).toUpperCase() + size.slice(1);
+            const buttons = document.querySelectorAll('#tab-typography .option-btn');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            applyDesignSystem();
+        }
+
+        function setInputSize(size) {
+            state.config.inputSize = size;
+            document.getElementById('inputSizeValue').textContent = size.charAt(0).toUpperCase() + size.slice(1);
+            const buttons = event.target.parentElement.querySelectorAll('.option-btn');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            applyDesignSystem();
+        }
+
+        // Advanced Spacing Controls
+        function updateSectionPadding(value) {
+            state.config.sectionPadding = parseFloat(value);
+            document.getElementById('sectionPaddingValue').textContent = value + 'rem';
+            applyDesignSystem();
+        }
+
+        function updateCardPadding(value) {
+            state.config.cardPadding = parseFloat(value);
+            document.getElementById('cardPaddingValue').textContent = value + 'rem';
+            applyDesignSystem();
+        }
+
+        function updateElementGap(value) {
+            state.config.elementGap = parseFloat(value);
+            document.getElementById('elementGapValue').textContent = value + 'rem';
+            applyDesignSystem();
+        }
+
+        function updateGridGap(value) {
+            state.config.gridGap = parseFloat(value);
+            document.getElementById('gridGapValue').textContent = value + 'rem';
+            applyDesignSystem();
+        }
+
+        function setButtonPadding(padding) {
+            state.config.buttonPadding = padding;
+            document.getElementById('buttonPaddingValue').textContent = padding.charAt(0).toUpperCase() + padding.slice(1);
+            const buttons = event.target.parentElement.querySelectorAll('.option-btn');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            applyDesignSystem();
+        }
+
+        // AI Prompt Functions
+        function generateFromQuickPrompt() {
+            const prompt = document.getElementById('quickPromptInput').value.trim();
+            if (!prompt) {
+                // If no prompt, generate random palettes
+                generatePalettes();
+                return;
+            }
+
+            // Parse prompt keywords for color generation
+            const colorKeywords = {
+                // Blues
+                'ocean': ['#006994', '#0A7EA4', '#4FB3D9', '#A9D9F5', '#E0F4FF'],
+                'blue': ['#0052a3', '#0066cc', '#3399ff', '#66b2ff', '#cce5ff'],
+                'sky': ['#87CEEB', '#4A90E2', '#7CB3E9', '#B0D9F5', '#E6F4FF'],
+                'corporate': ['#1e3a8a', '#2563eb', '#3b82f6', '#60a5fa', '#93c5fd'],
+
+                // Greens
+                'forest': ['#0B4D2C', '#145A32', '#1E8449', '#27AE60', '#52BE80'],
+                'nature': ['#2D5016', '#4A7C17', '#6AA121', '#8BC34A', '#AED581'],
+                'green': ['#166534', '#16a34a', '#22c55e', '#4ade80', '#86efac'],
+
+                // Warm Colors
+                'sunset': ['#FF6B35', '#F7931E', '#FDC830', '#FFCF44', '#FFE6A7'],
+                'orange': ['#c2410c', '#ea580c', '#f97316', '#fb923c', '#fdba74'],
+                'warm': ['#991b1b', '#dc2626', '#f97316', '#facc15', '#fef08a'],
+
+                // Purples
+                'purple': ['#581c87', '#7c3aed', '#8b5cf6', '#a78bfa', '#c4b5fd'],
+                'lavender': ['#6B46C1', '#7C3AED', '#9F7AEA', '#B794F4', '#E9D8FD'],
+
+                // Tropical & Vibrant
+                'tropical': ['#EC4899', '#F59E0B', '#10B981', '#3B82F6', '#8B5CF6'],
+                'vibrant': ['#DC2626', '#EA580C', '#F59E0B', '#10B981', '#3B82F6'],
+                'colorful': ['#EF4444', '#F97316', '#EAB308', '#22C55E', '#3B82F6'],
+
+                // Neutral & Minimalist
+                'nordic': ['#4A5568', '#718096', '#A0AEC0', '#CBD5E0', '#E2E8F0'],
+                'minimalist': ['#1F2937', '#4B5563', '#9CA3AF', '#D1D5DB', '#F3F4F6'],
+                'neutral': ['#404040', '#737373', '#a3a3a3', '#d4d4d4', '#f5f5f5'],
+
+                // Reds & Pinks
+                'red': ['#991b1b', '#dc2626', '#ef4444', '#f87171', '#fca5a5'],
+                'pink': ['#9f1239', '#e11d48', '#f43f5e', '#fb7185', '#fda4af'],
+
+                // Tech & Modern
+                'tech': ['#0F172A', '#1E40AF', '#3B82F6', '#60A5FA', '#93C5FD'],
+                'modern': ['#18181b', '#3f3f46', '#71717a', '#a1a1aa', '#d4d4d8'],
+
+                // Earth Tones
+                'autumn': ['#92400e', '#b45309', '#d97706', '#f59e0b', '#fbbf24'],
+                'earth': ['#78350f', '#92400e', '#b45309', '#d97706', '#f59e0b'],
+                'brown': ['#78350f', '#92400e', '#a16207', '#ca8a04', '#eab308']
+            };
+
+            // Find matching colors based on keywords
+            let matchedColors = null;
+            const lowerPrompt = prompt.toLowerCase();
+            for (const [keyword, colors] of Object.entries(colorKeywords)) {
+                if (lowerPrompt.includes(keyword)) {
+                    matchedColors = colors;
+                    break;
+                }
+            }
+
+            // Default to vibrant colors if no match
+            if (!matchedColors) {
+                matchedColors = ['#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981'];
+            }
+
+            // Generate 8 palette variations
+            state.palettes = [];
+            for (let i = 0; i < 8; i++) {
+                const palette = generatePaletteVariation(matchedColors, i);
+                state.palettes.push({
+                    colors: palette,
+                    name: `From: "${prompt}"`,
+                    contrast: 'aa'
+                });
+            }
+
+            renderPalettes();
+            selectPalette(0);
+            saveToHistory();
+            showNotification(`Generated palettes from "${prompt}"!`, '✨');
+        }
+
+        function generatePaletteVariation(baseColors, variation) {
+            // Create variations by rotating hues and adjusting saturation/lightness
+            const palette = [];
+            for (let i = 0; i < 5; i++) {
+                const baseColor = baseColors[i % baseColors.length];
+                const hsl = hexToHSL(baseColor);
+
+                // Apply variations
+                const hueShift = variation * 10 - 40;
+                const saturationShift = (variation % 3) * 10 - 10;
+                const lightnessShift = Math.floor(variation / 3) * 5;
+
+                const newH = (hsl.h + hueShift + 360) % 360;
+                const newS = Math.max(20, Math.min(100, hsl.s + saturationShift));
+                const newL = Math.max(20, Math.min(80, hsl.l + lightnessShift));
+
+                palette.push(hslToHex(newH, newS, newL));
+            }
+            return palette;
+        }
+
         // Apply Design System
         function applyDesignSystem() {
             const root = document.documentElement;
@@ -3558,6 +4382,137 @@
             root.style.setProperty('--transition-fast', (state.config.animation / 2) + 'ms');
             root.style.setProperty('--transition-slow', (state.config.animation * 1.5) + 'ms');
 
+            // Letter Spacing
+            document.querySelectorAll('h1, h2, h3, h4, h5, h6, .hero-title, .section-title-lg, .feature-title').forEach(el => {
+                el.style.letterSpacing = state.config.letterSpacing + 'px';
+            });
+
+            // Text Shadow
+            if (state.config.textShadow) {
+                document.querySelectorAll('h1, h2, .hero-title, .section-title-lg').forEach(el => {
+                    el.style.textShadow = '0 2px 10px rgba(0,0,0,0.15)';
+                });
+            } else {
+                document.querySelectorAll('h1, h2, .hero-title, .section-title-lg').forEach(el => {
+                    el.style.textShadow = 'none';
+                });
+            }
+
+            // Link Hover Styles
+            const linkHoverStyle = document.getElementById('linkHoverStyle') || document.createElement('style');
+            linkHoverStyle.id = 'linkHoverStyle';
+            linkHoverStyle.textContent = `
+                .nav-link:hover {
+                    color: ${state.config.linkHoverColor} !important;
+                }
+            `;
+            if (!document.getElementById('linkHoverStyle')) {
+                document.head.appendChild(linkHoverStyle);
+            }
+
+            // Button Hover Effects
+            const buttonHoverStyle = document.getElementById('buttonHoverStyle') || document.createElement('style');
+            buttonHoverStyle.id = 'buttonHoverStyle';
+            buttonHoverStyle.textContent = `
+                .btn:hover, .btn-primary:hover, .btn-secondary:hover, .nav-cta:hover {
+                    transform: scale(${state.config.buttonHoverScale}) !important;
+                    transition: all ${state.config.animation}ms ease;
+                }
+            `;
+            if (!document.getElementById('buttonHoverStyle')) {
+                document.head.appendChild(buttonHoverStyle);
+            }
+
+            // Card Hover Effects
+            const cardHoverStyle = document.getElementById('cardHoverStyle') || document.createElement('style');
+            cardHoverStyle.id = 'cardHoverStyle';
+            if (state.config.cardHoverShadow) {
+                cardHoverStyle.textContent = `
+                    .feature-card:hover {
+                        transform: translateY(-4px);
+                        box-shadow: 0 12px 40px rgba(0,0,0,0.2) !important;
+                        transition: all ${state.config.animation}ms ease;
+                    }
+                `;
+            } else {
+                cardHoverStyle.textContent = `
+                    .feature-card:hover {
+                        transform: none;
+                        transition: all ${state.config.animation}ms ease;
+                    }
+                `;
+            }
+            if (!document.getElementById('cardHoverStyle')) {
+                document.head.appendChild(cardHoverStyle);
+            }
+
+            // Heading Sizes
+            document.querySelectorAll('h1, .hero-title').forEach(el => {
+                el.style.fontSize = state.config.h1Size + 'rem';
+            });
+            document.querySelectorAll('h2, .section-title-lg').forEach(el => {
+                el.style.fontSize = state.config.h2Size + 'rem';
+            });
+            document.querySelectorAll('h3, .feature-title').forEach(el => {
+                el.style.fontSize = state.config.h3Size + 'rem';
+            });
+            document.querySelectorAll('h4').forEach(el => {
+                el.style.fontSize = state.config.h4Size + 'rem';
+            });
+
+            // Element Sizes
+            const buttonSizeMap = {
+                small: { padding: '0.5rem 1rem', fontSize: '0.875rem' },
+                medium: { padding: '0.75rem 1.5rem', fontSize: '1rem' },
+                large: { padding: '1rem 2rem', fontSize: '1.125rem' }
+            };
+            const buttonSize = buttonSizeMap[state.config.buttonSize];
+            document.querySelectorAll('.btn, .btn-primary, .btn-secondary, .nav-cta').forEach(el => {
+                el.style.padding = buttonSize.padding;
+                el.style.fontSize = buttonSize.fontSize;
+            });
+
+            const inputSizeMap = {
+                small: { padding: '0.5rem 0.75rem', fontSize: '0.875rem' },
+                medium: { padding: '0.75rem 1rem', fontSize: '1rem' },
+                large: { padding: '1rem 1.25rem', fontSize: '1.125rem' }
+            };
+            const inputSize = inputSizeMap[state.config.inputSize];
+            document.querySelectorAll('input[type="text"], input[type="email"], input[type="password"], textarea').forEach(el => {
+                el.style.padding = inputSize.padding;
+                el.style.fontSize = inputSize.fontSize;
+            });
+
+            // Advanced Spacing
+            document.querySelectorAll('section, .section').forEach(el => {
+                el.style.padding = state.config.sectionPadding + 'rem 0';
+            });
+
+            document.querySelectorAll('.card, .feature-card, .pricing-card').forEach(el => {
+                el.style.padding = state.config.cardPadding + 'rem';
+            });
+
+            // Element Gap (vertical spacing between elements)
+            root.style.setProperty('--element-gap', state.config.elementGap + 'rem');
+
+            // Grid Gap
+            document.querySelectorAll('.grid, .feature-grid, .pricing-grid').forEach(el => {
+                el.style.gap = state.config.gridGap + 'rem';
+            });
+
+            // Button Padding Overrides
+            if (state.config.buttonPadding !== state.config.buttonSize) {
+                const paddingMap = {
+                    compact: '0.5rem 1rem',
+                    medium: '0.75rem 1.5rem',
+                    generous: '1rem 2.5rem'
+                };
+                const padding = paddingMap[state.config.buttonPadding];
+                document.querySelectorAll('.btn, .btn-primary, .btn-secondary').forEach(el => {
+                    el.style.padding = padding;
+                });
+            }
+
             // Apply to preview elements
             updatePreviewElements(palette);
 
@@ -3579,9 +4534,11 @@
             const buttonBg = palette[4];
             const buttonTextColor = isLightColor(buttonBg) ? '#000000' : '#FFFFFF';
 
+            const angle = state.config.gradientAngle;
+
             const elements = {
                 '.nav-logo': { color: palette[0] },
-                '.nav-cta': { background: `linear-gradient(135deg, ${palette[0]} 0%, ${palette[1]} 100%)`, color: isLightColor(palette[0]) ? '#000000' : '#FFFFFF' },
+                '.nav-cta': { background: `linear-gradient(${angle}deg, ${palette[0]} 0%, ${palette[1]} 100%)`, color: isLightColor(palette[0]) ? '#000000' : '#FFFFFF' },
                 '.btn-primary': { backgroundColor: buttonBg, color: buttonTextColor },
             };
 
@@ -3595,11 +4552,11 @@
 
             // Apply to multiple elements
             document.querySelectorAll('.hero-section').forEach(el => {
-                el.style.background = `linear-gradient(135deg, ${palette[0]} 0%, ${palette[1]} 100%)`;
+                el.style.background = `linear-gradient(${angle}deg, ${palette[0]} 0%, ${palette[1]} 100%)`;
             });
 
             document.querySelectorAll('.feature-icon').forEach(el => {
-                el.style.background = `linear-gradient(135deg, ${palette[2]} 0%, ${palette[3]} 100%)`;
+                el.style.background = `linear-gradient(${angle}deg, ${palette[2]} 0%, ${palette[3]} 100%)`;
             });
 
             document.querySelectorAll('.btn-secondary').forEach(el => {
@@ -3663,7 +4620,11 @@
                 heading: '#000000',
                 body: '#333333',
                 link: '#0066cc',
-                muted: '#666666'
+                muted: '#666666',
+                accent: '#6366f1',
+                buttonPrimary: '#FFFFFF',
+                buttonSecondary: '#667eea',
+                navBrand: '#667eea'
             };
 
             // Update UI
@@ -3675,6 +4636,14 @@
             document.getElementById('linkColorValue').textContent = state.config.textColors.link;
             document.getElementById('mutedColor').value = state.config.textColors.muted;
             document.getElementById('mutedColorValue').textContent = state.config.textColors.muted;
+            document.getElementById('accentColor').value = state.config.textColors.accent;
+            document.getElementById('accentColorValue').textContent = state.config.textColors.accent;
+            document.getElementById('buttonPrimaryColor').value = state.config.textColors.buttonPrimary;
+            document.getElementById('buttonPrimaryColorValue').textContent = state.config.textColors.buttonPrimary;
+            document.getElementById('buttonSecondaryColor').value = state.config.textColors.buttonSecondary;
+            document.getElementById('buttonSecondaryColorValue').textContent = state.config.textColors.buttonSecondary;
+            document.getElementById('navBrandColor').value = state.config.textColors.navBrand;
+            document.getElementById('navBrandColorValue').textContent = state.config.textColors.navBrand;
 
             applyTextColors();
             showNotification('Text colors reset', '🎨');
@@ -3703,6 +4672,30 @@
             // Apply to muted text
             document.querySelectorAll('.app-version, .slider-tick, .control-value').forEach(el => {
                 el.style.color = colors.muted;
+            });
+
+            // Apply to accent/price text
+            document.querySelectorAll('.price-text').forEach(el => {
+                el.style.color = colors.accent;
+            });
+
+            // Apply to button text colors
+            document.querySelectorAll('.btn-primary').forEach(el => {
+                el.style.color = colors.buttonPrimary;
+            });
+
+            document.querySelectorAll('.btn-secondary').forEach(el => {
+                el.style.color = colors.buttonSecondary;
+            });
+
+            // Apply to navigation brand
+            document.querySelectorAll('.nav-logo').forEach(el => {
+                el.style.color = colors.navBrand;
+            });
+
+            // Apply to CTA button (Get Started)
+            document.querySelectorAll('.nav-cta').forEach(el => {
+                el.style.color = colors.buttonPrimary;
             });
         }
 

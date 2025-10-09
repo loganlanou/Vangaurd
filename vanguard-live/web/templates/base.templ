@@ -1,0 +1,75 @@
+package templates
+
+templ Base(title string) {
+	<!DOCTYPE html>
+	<html lang="en">
+		<head>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<title>{ title } | VANGUARD</title>
+			<link rel="stylesheet" href="/static/css/styles.css"/>
+			<script src="https://unpkg.com/htmx.org@2.0.4"></script>
+		</head>
+		<body class="bg-gray-50 dark:bg-gray-900">
+			@Header()
+			<main class="container mx-auto px-4 py-8">
+				{ children... }
+			</main>
+			@Footer()
+			<script src="/static/js/main.js"></script>
+		</body>
+	</html>
+}
+
+templ Header() {
+	<header class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+		<nav class="container mx-auto px-4 py-4">
+			<div class="flex items-center justify-between">
+				<div class="flex items-center space-x-8">
+					<a href="/" class="flex items-center space-x-2">
+						<div class="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+							<span class="text-white font-bold text-xl">V</span>
+						</div>
+						<span class="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+							VANGUARD
+						</span>
+					</a>
+					<div class="hidden md:flex space-x-6">
+						<a href="/studio" class="text-gray-700 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 transition">
+							Studio
+						</a>
+						<a href="/gallery" class="text-gray-700 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 transition">
+							Gallery
+						</a>
+						<a href="/shop" class="text-gray-700 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 transition">
+							Shop
+						</a>
+					</div>
+				</div>
+				<div class="flex items-center space-x-4">
+					<div id="auth-buttons"></div>
+				</div>
+			</div>
+		</nav>
+	</header>
+}
+
+templ Footer() {
+	<footer class="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 mt-16">
+		<div class="container mx-auto px-4 py-8">
+			<div class="flex flex-col md:flex-row justify-between items-center">
+				<div class="text-gray-600 dark:text-gray-400 text-sm">
+					© 2025 VANGUARD. All rights reserved.
+				</div>
+				<div class="flex space-x-6 mt-4 md:mt-0">
+					<a href="/privacy" class="text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 text-sm transition">
+						Privacy Policy
+					</a>
+					<a href="/terms" class="text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 text-sm transition">
+						Terms of Service
+					</a>
+				</div>
+			</div>
+		</div>
+	</footer>
+}
