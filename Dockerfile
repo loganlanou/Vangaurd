@@ -1,8 +1,11 @@
 # Build stage
 FROM golang:1.22-alpine AS builder
 
-# Install build dependencies
-RUN apk add --no-cache git nodejs npm
+# Install build dependencies including CGO dependencies for SQLite
+RUN apk add --no-cache git nodejs npm gcc musl-dev sqlite-dev
+
+# Enable CGO for SQLite
+ENV CGO_ENABLED=1
 
 # Set working directory
 WORKDIR /build
@@ -30,7 +33,7 @@ RUN go build -o bin/server cmd/server/main.go
 # Runtime stage
 FROM alpine:latest
 
-RUN apk add --no-cache sqlite ca-certificates
+RUN apk add --no-cache ca-certificates sqlite-libs
 
 WORKDIR /app
 
