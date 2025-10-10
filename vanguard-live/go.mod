@@ -1,6 +1,6 @@
 module github.com/loganlanou/vanguard-live
 
-go 1.25.0
+go 1.22
 
 require (
 	github.com/a-h/templ v0.3.943 // indirect
