@@ -2,24 +2,23 @@
 FROM golang:1.22-alpine AS builder
 
 # Install build dependencies
-RUN apk add --no-cache git nodejs npm sqlite
+RUN apk add --no-cache git nodejs npm
 
-WORKDIR /app
+# Set working directory
+WORKDIR /build
 
-# Copy go mod files
-COPY vanguard-live/go.mod vanguard-live/go.sum ./
+# Copy entire vanguard-live directory
+COPY vanguard-live/ ./
+
+# Install Go dependencies
 RUN go mod download
 
-# Copy package files
-COPY vanguard-live/package*.json ./
+# Install Node dependencies
 RUN npm install
 
 # Install Go tools
 RUN go install github.com/a-h/templ/cmd/templ@latest
 RUN go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
-
-# Copy source code
-COPY vanguard-live/ .
 
 # Generate code and build
 RUN sqlc generate
@@ -36,9 +35,9 @@ RUN apk add --no-cache sqlite ca-certificates
 WORKDIR /app
 
 # Copy binary and required files from builder
-COPY --from=builder /app/bin/server .
-COPY --from=builder /app/web ./web
-COPY --from=builder /app/migrations ./migrations
+COPY --from=builder /build/bin/server .
+COPY --from=builder /build/web ./web
+COPY --from=builder /build/migrations ./migrations
 
 # Set environment
 ENV PORT=8080
