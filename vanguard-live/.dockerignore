@@ -3,14 +3,16 @@ tmp/
 .air.toml
 *.md
 test-*.js
+.env
+.envrc
 
 # Build artifacts
 node_modules/
 bin/
 
-# Local database (will be created on Railway)
+# Database
 *.db
 
-# Environment files
-.env
-.envrc
+# Git
+.git/
+.gitignore
