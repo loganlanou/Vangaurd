@@ -21,9 +21,9 @@ RUN npm install
 RUN go install github.com/a-h/templ/cmd/templ@latest
 RUN go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
 
-# Generate code and build
-RUN sqlc generate
-RUN templ generate
+# Generate code and build (use full path to installed tools)
+RUN /go/bin/sqlc generate
+RUN /go/bin/templ generate
 RUN npm run build:css
 RUN mkdir -p bin
 RUN go build -o bin/server cmd/server/main.go
