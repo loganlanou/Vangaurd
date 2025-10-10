@@ -1,18 +1,21 @@
-# Development files
-tmp/
-.air.toml
-*.md
-test-*.js
-.env
-.envrc
-
-# Build artifacts
-node_modules/
-bin/
-
-# Database
-*.db
+# Root level files we don't need
+color-palette-generator.html
+.claude/
+README.md
 
 # Git
 .git/
 .gitignore
+
+# Vanguard development files
+vanguard-live/tmp/
+vanguard-live/.air.toml
+vanguard-live/.env
+vanguard-live/.envrc
+vanguard-live/test-*.js
+vanguard-live/*.md
+
+# Vanguard build artifacts (will be rebuilt in Docker)
+vanguard-live/node_modules/
+vanguard-live/bin/
+vanguard-live/*.db
