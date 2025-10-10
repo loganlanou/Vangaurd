@@ -1,0 +1,22 @@
+[phases.setup]
+nixPkgs = ["go_1_22", "nodejs_20", "sqlite"]
+aptPkgs = ["sqlite3"]
+
+[phases.install]
+cmds = [
+  "go mod download",
+  "npm install",
+  "go install github.com/a-h/templ/cmd/templ@latest",
+  "go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest"
+]
+
+[phases.build]
+cmds = [
+  "sqlc generate",
+  "templ generate",
+  "npm run build:css",
+  "go build -o bin/server cmd/server/main.go"
+]
+
+[start]
+cmd = "./bin/server"

@@ -1,0 +1,16 @@
+# Development files
+tmp/
+.air.toml
+*.md
+test-*.js
+
+# Build artifacts
+node_modules/
+bin/
+
+# Local database (will be created on Railway)
+*.db
+
+# Environment files
+.env
+.envrc
