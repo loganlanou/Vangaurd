@@ -7,11 +7,11 @@ RUN apk add --no-cache git nodejs npm sqlite
 WORKDIR /app
 
 # Copy go mod files
-COPY go.mod go.sum ./
+COPY vanguard-live/go.mod vanguard-live/go.sum ./
 RUN go mod download
 
 # Copy package files
-COPY package*.json ./
+COPY vanguard-live/package*.json ./
 RUN npm install
 
 # Install Go tools
@@ -19,7 +19,7 @@ RUN go install github.com/a-h/templ/cmd/templ@latest
 RUN go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
 
 # Copy source code
-COPY . .
+COPY vanguard-live/ .
 
 # Generate code and build
 RUN sqlc generate

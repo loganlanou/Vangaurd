@@ -1,0 +1,6 @@
+[build]
+builder = "DOCKERFILE"
+watchPatterns = ["vanguard-live/**"]
+
+[deploy]
+startCommand = "./server"
