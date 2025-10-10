@@ -1758,9 +1758,9 @@
                             <span>📂</span>
                             <span class="tooltip-content">Load Design</span>
                         </button>
-                        <button class="icon-btn tooltip" onclick="toggleDarkMode()">
-                            <span id="themeIcon">🌙</span>
-                            <span class="tooltip-content">Toggle Theme</span>
+                        <button class="icon-btn tooltip" onclick="toggleGradientMode()">
+                            <span id="gradientIcon">🌈</span>
+                            <span class="tooltip-content">Toggle Gradients</span>
                         </button>
                         <button class="icon-btn tooltip" onclick="showKeyboardShortcuts()">
                             <span>⌨️</span>
@@ -2326,6 +2326,13 @@
                     </div>
                 </div>
                 <div class="shortcut-item">
+                    <span class="shortcut-desc">Toggle gradient mode</span>
+                    <div class="shortcut-key">
+                        <span class="key">Ctrl</span>
+                        <span class="key">R</span>
+                    </div>
+                </div>
+                <div class="shortcut-item">
                     <span class="shortcut-desc">Save configuration</span>
                     <div class="shortcut-key">
                         <span class="key">Ctrl</span>
@@ -2570,6 +2577,7 @@
                 animation: 300,
                 theme: 'light',
                 previewDark: false,
+                gradientMode: false,
                 textColors: {
                     heading: '#000000',
                     body: '#333333',
@@ -3575,14 +3583,29 @@
                 return luminance > 0.5;
             };
 
+            // Check if gradient mode is enabled
+            const gradientEnabled = state.config.gradientMode;
+
             // Get contrasting text color for button
             const buttonBg = palette[4];
             const buttonTextColor = isLightColor(buttonBg) ? '#000000' : '#FFFFFF';
 
+            // Apply gradient or solid colors based on mode
             const elements = {
                 '.nav-logo': { color: palette[0] },
-                '.nav-cta': { background: `linear-gradient(135deg, ${palette[0]} 0%, ${palette[1]} 100%)`, color: isLightColor(palette[0]) ? '#000000' : '#FFFFFF' },
-                '.btn-primary': { backgroundColor: buttonBg, color: buttonTextColor },
+                '.nav-cta': {
+                    background: gradientEnabled
+                        ? `linear-gradient(135deg, ${palette[0]} 0%, ${palette[1]} 100%)`
+                        : palette[0],
+                    color: isLightColor(palette[0]) ? '#000000' : '#FFFFFF'
+                },
+                '.btn-primary': {
+                    background: gradientEnabled
+                        ? `linear-gradient(135deg, ${palette[0]} 0%, ${palette[1]} 100%)`
+                        : buttonBg,
+                    backgroundColor: gradientEnabled ? 'transparent' : buttonBg,
+                    color: buttonTextColor
+                },
             };
 
             // Apply to single elements
@@ -3595,22 +3618,52 @@
 
             // Apply to multiple elements
             document.querySelectorAll('.hero-section').forEach(el => {
-                el.style.background = `linear-gradient(135deg, ${palette[0]} 0%, ${palette[1]} 100%)`;
+                el.style.background = gradientEnabled
+                    ? `linear-gradient(135deg, ${palette[0]} 0%, ${palette[1]} 100%)`
+                    : palette[0];
             });
 
             document.querySelectorAll('.feature-icon').forEach(el => {
-                el.style.background = `linear-gradient(135deg, ${palette[2]} 0%, ${palette[3]} 100%)`;
+                el.style.background = gradientEnabled
+                    ? `linear-gradient(135deg, ${palette[2]} 0%, ${palette[3]} 100%)`
+                    : palette[2];
             });
 
             document.querySelectorAll('.btn-secondary').forEach(el => {
-                el.style.borderColor = palette[0];
-                el.style.color = palette[0];
+                if (gradientEnabled) {
+                    el.style.background = `linear-gradient(135deg, ${palette[0]} 0%, ${palette[1]} 100%)`;
+                    el.style.borderColor = 'transparent';
+                    el.style.color = isLightColor(palette[0]) ? '#000000' : '#FFFFFF';
+                    el.style.webkitBackgroundClip = 'text';
+                    el.style.webkitTextFillColor = 'transparent';
+                    el.style.backgroundClip = 'text';
+                } else {
+                    el.style.background = 'transparent';
+                    el.style.borderColor = palette[0];
+                    el.style.color = palette[0];
+                    el.style.webkitBackgroundClip = 'unset';
+                    el.style.webkitTextFillColor = 'unset';
+                    el.style.backgroundClip = 'unset';
+                }
+            });
+
+            // Apply gradient to cards if enabled
+            document.querySelectorAll('.feature-card, .pricing-card').forEach(el => {
+                if (gradientEnabled) {
+                    el.style.borderImage = `linear-gradient(135deg, ${palette[0]} 0%, ${palette[1]} 100%) 1`;
+                } else {
+                    el.style.borderImage = 'none';
+                }
             });
 
             // Update accent color for pricing highlights
             const root = document.documentElement;
             root.style.setProperty('--accent-primary', palette[0]);
             root.style.setProperty('--accent-secondary', palette[1]);
+
+            if (gradientEnabled) {
+                root.style.setProperty('--accent-gradient', `linear-gradient(135deg, ${palette[0]} 0%, ${palette[1]} 100%)`);
+            }
         }
 
         // UI Functions
@@ -3630,6 +3683,15 @@
             state.config.theme = state.config.theme === 'light' ? 'dark' : 'light';
             document.body.classList.toggle('dark');
             document.getElementById('themeIcon').textContent = state.config.theme === 'light' ? '🌙' : '☀️';
+        }
+
+        function toggleGradientMode() {
+            state.config.gradientMode = !state.config.gradientMode;
+            const icon = document.getElementById('gradientIcon');
+            icon.textContent = state.config.gradientMode ? '✨' : '🌈';
+            applyDesignSystem();
+            const message = state.config.gradientMode ? 'Gradient mode enabled' : 'Gradient mode disabled';
+            showNotification(message, state.config.gradientMode ? '✨' : '🌈');
         }
 
         function togglePreviewDark() {
@@ -4001,6 +4063,11 @@
                         case 'D':
                             e.preventDefault();
                             toggleDarkMode();
+                            break;
+                        case 'r':
+                        case 'R':
+                            e.preventDefault();
+                            toggleGradientMode();
                             break;
                         case 's':
                         case 'S':
