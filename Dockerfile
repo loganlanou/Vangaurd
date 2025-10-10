@@ -1,5 +1,5 @@
 # Build stage
-FROM golang:1.22-bullseye AS builder
+FROM golang:1.23-bullseye AS builder
 
 # Install Node.js
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
