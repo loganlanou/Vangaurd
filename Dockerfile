@@ -1,9 +1,8 @@
 # Build stage
-FROM golang:1.23-bullseye AS builder
+FROM golang:1.23-alpine AS builder
 
-# Install Node.js
-RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
-    apt-get install -y nodejs
+# Install Node.js and npm
+RUN apk add --no-cache nodejs npm
 
 # Set working directory
 WORKDIR /build
@@ -29,10 +28,9 @@ RUN mkdir -p bin
 RUN go build -o bin/server cmd/server/main.go
 
 # Runtime stage
-FROM debian:bullseye-slim
+FROM alpine:latest
 
-RUN apt-get update && apt-get install -y ca-certificates sqlite3 && \
-    rm -rf /var/lib/apt/lists/*
+RUN apk add --no-cache ca-certificates
 
 WORKDIR /app
 

@@ -11,7 +11,7 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/loganlanou/vanguard-live/internal/database"
 	"github.com/loganlanou/vanguard-live/internal/handlers"
-	_ "github.com/mattn/go-sqlite3"
+	_ "modernc.org/sqlite"
 )
 
 func main() {
@@ -21,7 +21,7 @@ func main() {
 	}
 
 	// Initialize database
-	db, err := sql.Open("sqlite3", getEnv("DATABASE_URL", "./vanguard.db"))
+	db, err := sql.Open("sqlite", getEnv("DATABASE_URL", "./vanguard.db"))
 	if err != nil {
 		log.Fatal("Failed to connect to database:", err)
 	}
