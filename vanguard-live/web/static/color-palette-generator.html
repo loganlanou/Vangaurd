@@ -1721,29 +1721,41 @@
         }
 
         @media (max-width: 768px) {
+            /* Mobile: Default to edit-only view */
             .app-container {
                 flex-direction: column;
             }
 
             .control-panel {
                 width: 100%;
-                height: auto;
-                max-height: 60vh;
+                height: 100vh;
+                max-height: 100vh;
                 border-right: none;
-                border-bottom: 1px solid var(--border-primary);
+                border-bottom: none;
                 overflow-y: auto;
+            }
+
+            /* Hide preview by default on mobile */
+            .preview-panel {
+                display: none;
+                width: 100%;
+                height: 100vh;
+                overflow-y: auto;
+            }
+
+            /* Mobile view modes */
+            .app-container[data-mobile-view="preview"] .control-panel {
+                display: none;
+            }
+
+            .app-container[data-mobile-view="preview"] .preview-panel {
+                display: block;
             }
 
             .control-panel.collapsed {
                 height: auto;
                 max-height: 60px;
                 overflow: hidden;
-            }
-
-            .preview-panel {
-                height: auto;
-                min-height: 40vh;
-                flex: 1;
             }
 
             /* Mobile header improvements */
@@ -1782,6 +1794,35 @@
                 width: 36px;
                 height: 36px;
                 font-size: 1.1rem;
+            }
+
+            /* Make view toggle prominent on mobile */
+            #viewToggleBtn {
+                background: linear-gradient(135deg, var(--primary-gradient-start), var(--primary-gradient-end));
+                width: auto;
+                padding: 0 1rem;
+                border-radius: 20px;
+                min-width: 120px;
+                height: 40px;
+                font-weight: 600;
+                gap: 0.5rem;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            #viewToggleBtn #viewIcon {
+                font-size: 1.2rem;
+            }
+
+            #viewToggleBtn #viewText {
+                display: inline !important;
+                font-size: 0.875rem;
+                color: white;
+            }
+
+            #viewToggleBtn .tooltip-content {
+                display: none;
             }
 
             /* Larger touch targets for mobile */
@@ -1827,23 +1868,76 @@
                 display: none;
             }
 
-            /* Preview optimizations */
+            /* Mobile Preview optimizations */
+            .preview-panel {
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .preview-container {
+                padding: 0;
+            }
+
+            .hero-section {
+                min-height: 60vh;
+                padding: 2rem 1rem;
+            }
+
             .hero-title {
-                font-size: calc(var(--size-base) * 2);
+                font-size: calc(var(--size-base) * 1.75);
+                line-height: 1.2;
             }
 
             .hero-subtitle {
-                font-size: calc(var(--size-base) * 0.9);
+                font-size: calc(var(--size-base) * 0.85);
+                line-height: 1.4;
+            }
+
+            .hero-cta,
+            .cta-button {
+                padding: 0.875rem 1.5rem;
+                font-size: 1rem;
+                min-height: 48px;
+                width: auto;
+            }
+
+            .preview-navbar {
+                padding: 0.75rem 1rem;
+            }
+
+            .nav-brand {
+                font-size: 1.125rem;
             }
 
             .nav-menu {
                 flex-wrap: wrap;
                 gap: 0.5rem;
+                justify-content: center;
             }
 
             .nav-link {
                 font-size: 0.875rem;
                 padding: 0.5rem 0.75rem;
+                min-height: 40px;
+            }
+
+            .nav-cta {
+                padding: 0.625rem 1rem;
+                font-size: 0.875rem;
+                min-height: 44px;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+                padding: 1rem;
+            }
+
+            .feature-card {
+                padding: 1.5rem;
+            }
+
+            .section-padding {
+                padding: 2rem 1rem;
             }
 
             /* Mobile controls */
@@ -1983,7 +2077,8 @@
                             <span class="tooltip-content">Toggle Gradient Mode</span>
                         </button>
                         <button class="icon-btn tooltip" onclick="toggleView()" id="viewToggleBtn">
-                            <span id="viewIcon">⚡</span>
+                            <span id="viewIcon">👁️</span>
+                            <span id="viewText" style="display: none;">Preview</span>
                             <span class="tooltip-content">View: Split Screen</span>
                         </button>
                         <button class="icon-btn tooltip" onclick="showKeyboardShortcuts()">
@@ -4932,27 +5027,48 @@
         function toggleView() {
             const container = document.querySelector('.app-container');
             const viewIcon = document.getElementById('viewIcon');
+            const viewText = document.getElementById('viewText');
             const tooltip = document.querySelector('#viewToggleBtn .tooltip-content');
+            const isMobile = window.innerWidth <= 768;
 
-            // Cycle through: split -> edit -> preview -> split
-            if (state.currentView === 'split') {
-                state.currentView = 'edit';
-                container.setAttribute('data-view', 'edit');
-                viewIcon.textContent = '✏️';
-                tooltip.textContent = 'View: Edit Only';
-                showNotification('Edit Mode - Full screen controls', '✏️');
-            } else if (state.currentView === 'edit') {
-                state.currentView = 'preview';
-                container.setAttribute('data-view', 'preview');
-                viewIcon.textContent = '👁️';
-                tooltip.textContent = 'View: Preview Only';
-                showNotification('Preview Mode - Full screen preview', '👁️');
+            if (isMobile) {
+                // Mobile: Toggle between edit (default) and preview only
+                const currentMobileView = container.getAttribute('data-mobile-view');
+
+                if (currentMobileView === 'preview') {
+                    // Switch to edit
+                    container.removeAttribute('data-mobile-view');
+                    viewIcon.textContent = '👁️';
+                    viewText.textContent = 'Preview';
+                    showNotification('Edit Mode - Editing controls', '✏️');
+                } else {
+                    // Switch to preview
+                    container.setAttribute('data-mobile-view', 'preview');
+                    viewIcon.textContent = '✏️';
+                    viewText.textContent = 'Edit';
+                    showNotification('Preview Mode - Mobile optimized', '👁️');
+                }
             } else {
-                state.currentView = 'split';
-                container.removeAttribute('data-view');
-                viewIcon.textContent = '⚡';
-                tooltip.textContent = 'View: Split Screen';
-                showNotification('Split Screen Mode - Edit & Preview', '⚡');
+                // Desktop: Cycle through split -> edit -> preview -> split
+                if (state.currentView === 'split') {
+                    state.currentView = 'edit';
+                    container.setAttribute('data-view', 'edit');
+                    viewIcon.textContent = '✏️';
+                    tooltip.textContent = 'View: Edit Only';
+                    showNotification('Edit Mode - Full screen controls', '✏️');
+                } else if (state.currentView === 'edit') {
+                    state.currentView = 'preview';
+                    container.setAttribute('data-view', 'preview');
+                    viewIcon.textContent = '👁️';
+                    tooltip.textContent = 'View: Preview Only';
+                    showNotification('Preview Mode - Full screen preview', '👁️');
+                } else {
+                    state.currentView = 'split';
+                    container.removeAttribute('data-view');
+                    viewIcon.textContent = '⚡';
+                    tooltip.textContent = 'View: Split Screen';
+                    showNotification('Split Screen Mode - Edit & Preview', '⚡');
+                }
             }
         }
 
