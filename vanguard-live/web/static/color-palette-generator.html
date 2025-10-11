@@ -4607,9 +4607,15 @@
             const navCta = document.querySelector('.nav-cta');
             if (navCta) {
                 const ctaBg = getBgStyle(palette[0], palette[1]);
-                navCta.style.background = ctaBg;
-                navCta.style.backgroundImage = isGradient(palette[0]) ? palette[0] : '';
-                navCta.style.backgroundColor = isGradient(palette[0]) ? '' : palette[0];
+                if (isGradient(palette[0])) {
+                    // Palette color is already a gradient
+                    navCta.style.backgroundImage = palette[0];
+                    navCta.style.backgroundColor = '';
+                } else {
+                    // Palette colors are solid, getBgStyle created a gradient
+                    navCta.style.backgroundImage = ctaBg;
+                    navCta.style.backgroundColor = '';
+                }
                 navCta.style.color = '#FFFFFF';
                 console.log('Applied nav-cta background:', ctaBg);
             }
@@ -4632,10 +4638,13 @@
             document.querySelectorAll('.hero-section').forEach(el => {
                 const heroBg = getBgStyle(palette[0], palette[1]);
                 if (isGradient(palette[0])) {
-                    el.style.backgroundImage = heroBg;
+                    // Palette color is already a gradient
+                    el.style.backgroundImage = palette[0];
                     el.style.backgroundColor = '';
                 } else {
-                    el.style.background = heroBg; // Use shorthand for created gradients
+                    // Palette colors are solid, getBgStyle created a gradient
+                    el.style.backgroundImage = heroBg;
+                    el.style.backgroundColor = '';
                 }
                 console.log('Applied hero-section background:', heroBg);
             });
@@ -4644,10 +4653,13 @@
             document.querySelectorAll('.feature-icon').forEach(el => {
                 const iconBg = getBgStyle(palette[2], palette[3]);
                 if (isGradient(palette[2])) {
-                    el.style.backgroundImage = iconBg;
+                    // Palette color is already a gradient
+                    el.style.backgroundImage = palette[2];
                     el.style.backgroundColor = '';
                 } else {
-                    el.style.background = iconBg; // Use shorthand for created gradients
+                    // Palette colors are solid, getBgStyle created a gradient
+                    el.style.backgroundImage = iconBg;
+                    el.style.backgroundColor = '';
                 }
             });
 
