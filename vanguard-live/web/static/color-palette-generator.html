@@ -1758,9 +1758,9 @@
                             <span>📂</span>
                             <span class="tooltip-content">Load Design</span>
                         </button>
-                        <button class="icon-btn tooltip" onclick="toggleDarkMode()">
-                            <span id="themeIcon">🌙</span>
-                            <span class="tooltip-content">Toggle Theme</span>
+                        <button class="icon-btn tooltip" onclick="toggleGradientMode()">
+                            <span id="gradientIcon">🌈</span>
+                            <span class="tooltip-content">Toggle Gradient Mode</span>
                         </button>
                         <button class="icon-btn tooltip" onclick="showKeyboardShortcuts()">
                             <span>⌨️</span>
@@ -2936,7 +2936,8 @@
                 }
             },
             history: [],
-            historyIndex: -1
+            historyIndex: -1,
+            gradientMode: false
         };
 
         // Clerk Authentication
@@ -3600,58 +3601,79 @@
             const baseHue = Math.random() * 360;
             const palette = [];
 
-            switch(strategy) {
-                case 'analogous':
-                    for(let i = 0; i < 5; i++) {
-                        palette.push(hslToHex(
-                            (baseHue + i * 30) % 360,
-                            60 + Math.random() * 30,
-                            45 + Math.random() * 20
-                        ));
-                    }
-                    break;
-                case 'complementary':
-                    palette.push(hslToHex(baseHue, 70, 50));
-                    palette.push(hslToHex((baseHue + 180) % 360, 70, 50));
-                    palette.push(hslToHex(baseHue, 50, 70));
-                    palette.push(hslToHex((baseHue + 180) % 360, 50, 30));
-                    palette.push(hslToHex(baseHue, 30, 90));
-                    break;
-                case 'triadic':
-                    for(let i = 0; i < 5; i++) {
-                        const hue = (baseHue + (i % 3) * 120) % 360;
-                        palette.push(hslToHex(
-                            hue,
-                            60 + Math.random() * 20,
-                            40 + Math.random() * 30
-                        ));
-                    }
-                    break;
-                case 'tetradic':
-                    for(let i = 0; i < 5; i++) {
-                        const hue = (baseHue + (i % 4) * 90) % 360;
-                        palette.push(hslToHex(
-                            hue,
-                            55 + Math.random() * 30,
-                            40 + Math.random() * 25
-                        ));
-                    }
-                    break;
-                case 'monochromatic':
-                    for(let i = 0; i < 5; i++) {
-                        palette.push(hslToHex(
-                            baseHue,
-                            50 + Math.random() * 30,
-                            20 + i * 15
-                        ));
-                    }
-                    break;
+            if (state.gradientMode) {
+                // Generate gradient pairs instead of solid colors
+                for(let i = 0; i < 5; i++) {
+                    const hue1 = (baseHue + i * 40) % 360;
+                    const hue2 = (hue1 + 30 + Math.random() * 60) % 360;
+                    const sat1 = 60 + Math.random() * 30;
+                    const sat2 = 60 + Math.random() * 30;
+                    const light1 = 45 + Math.random() * 20;
+                    const light2 = 45 + Math.random() * 20;
+
+                    const color1 = hslToHex(hue1, sat1, light1);
+                    const color2 = hslToHex(hue2, sat2, light2);
+                    const angle = 135 + Math.floor(Math.random() * 3) * 45; // 135, 180, or 225 degrees
+
+                    // Store as gradient CSS string
+                    palette.push(`linear-gradient(${angle}deg, ${color1}, ${color2})`);
+                }
+            } else {
+                // Original solid color generation
+                switch(strategy) {
+                    case 'analogous':
+                        for(let i = 0; i < 5; i++) {
+                            palette.push(hslToHex(
+                                (baseHue + i * 30) % 360,
+                                60 + Math.random() * 30,
+                                45 + Math.random() * 20
+                            ));
+                        }
+                        break;
+                    case 'complementary':
+                        palette.push(hslToHex(baseHue, 70, 50));
+                        palette.push(hslToHex((baseHue + 180) % 360, 70, 50));
+                        palette.push(hslToHex(baseHue, 50, 70));
+                        palette.push(hslToHex((baseHue + 180) % 360, 50, 30));
+                        palette.push(hslToHex(baseHue, 30, 90));
+                        break;
+                    case 'triadic':
+                        for(let i = 0; i < 5; i++) {
+                            const hue = (baseHue + (i % 3) * 120) % 360;
+                            palette.push(hslToHex(
+                                hue,
+                                60 + Math.random() * 20,
+                                40 + Math.random() * 30
+                            ));
+                        }
+                        break;
+                    case 'tetradic':
+                        for(let i = 0; i < 5; i++) {
+                            const hue = (baseHue + (i % 4) * 90) % 360;
+                            palette.push(hslToHex(
+                                hue,
+                                55 + Math.random() * 30,
+                                40 + Math.random() * 25
+                            ));
+                        }
+                        break;
+                    case 'monochromatic':
+                        for(let i = 0; i < 5; i++) {
+                            palette.push(hslToHex(
+                                baseHue,
+                                50 + Math.random() * 30,
+                                20 + i * 15
+                            ));
+                        }
+                        break;
+                }
             }
 
             return {
                 colors: palette,
                 name: getPaletteName(),
-                contrast: checkContrast(palette[0], palette[4])
+                contrast: checkContrast(palette[0], palette[4]),
+                isGradient: state.gradientMode
             };
         }
 
@@ -3978,7 +4000,15 @@
                 palette.colors.forEach(color => {
                     const swatch = document.createElement('div');
                     swatch.className = 'color-swatch';
-                    swatch.style.backgroundColor = color;
+
+                    // Check if color is a gradient or solid color
+                    if (color.startsWith('linear-gradient')) {
+                        swatch.style.backgroundImage = color;
+                        swatch.style.backgroundColor = 'transparent';
+                    } else {
+                        swatch.style.backgroundColor = color;
+                    }
+
                     swatch.onclick = (e) => {
                         e.stopPropagation();
                         copyToClipboard(color);
@@ -3986,7 +4016,8 @@
 
                     const hex = document.createElement('div');
                     hex.className = 'color-hex';
-                    hex.textContent = color.toUpperCase();
+                    // Show shortened text for gradients
+                    hex.textContent = color.startsWith('linear-gradient') ? 'GRADIENT' : color.toUpperCase();
 
                     swatch.appendChild(hex);
                     colors.appendChild(swatch);
@@ -4589,6 +4620,13 @@
             document.getElementById('themeIcon').textContent = state.config.theme === 'light' ? '🌙' : '☀️';
         }
 
+        function toggleGradientMode() {
+            state.gradientMode = !state.gradientMode;
+            document.getElementById('gradientIcon').textContent = state.gradientMode ? '✨' : '🌈';
+            generatePalettes();
+            showNotification(state.gradientMode ? 'Gradient mode enabled!' : 'Solid color mode enabled!', state.gradientMode ? '✨' : '🌈');
+        }
+
         function togglePreviewDark() {
             state.config.previewDark = !state.config.previewDark;
             document.getElementById('previewFrame').classList.toggle('dark');
@@ -4994,6 +5032,11 @@
                         case 'D':
                             e.preventDefault();
                             toggleDarkMode();
+                            break;
+                        case 'r':
+                        case 'R':
+                            e.preventDefault();
+                            toggleGradientMode();
                             break;
                         case 's':
                         case 'S':
