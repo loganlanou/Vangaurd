@@ -4030,6 +4030,7 @@
         }
 
         function selectPalette(index) {
+            console.log('selectPalette called with index:', index);
             state.selectedPalette = index;
             renderPalettes();
             applyDesignSystem();
@@ -4552,6 +4553,8 @@
         }
 
         function updatePreviewElements(palette) {
+            console.log('updatePreviewElements called with palette:', palette);
+
             // Helper to check if a value is a gradient
             const isGradient = (value) => typeof value === 'string' && value.startsWith('linear-gradient');
 
@@ -4593,27 +4596,59 @@
                 }
             };
 
-            const elements = {
-                '.nav-logo': { color: isGradient(palette[0]) ? '#FFFFFF' : palette[0] },
-                '.nav-cta': { background: getBgStyle(palette[0], palette[1]), color: '#FFFFFF' },
-                '.btn-primary': { background: getColorStyle(buttonBg), backgroundColor: isGradient(buttonBg) ? 'transparent' : buttonBg, color: buttonTextColor },
-            };
+            // Apply to single elements - nav logo
+            const navLogo = document.querySelector('.nav-logo');
+            if (navLogo) {
+                navLogo.style.color = isGradient(palette[0]) ? '#FFFFFF' : palette[0];
+                console.log('Applied nav-logo color:', navLogo.style.color);
+            }
 
-            // Apply to single elements
-            Object.entries(elements).forEach(([selector, styles]) => {
-                const el = document.querySelector(selector);
-                if (el) {
-                    Object.assign(el.style, styles);
+            // Apply to single elements - nav CTA button
+            const navCta = document.querySelector('.nav-cta');
+            if (navCta) {
+                const ctaBg = getBgStyle(palette[0], palette[1]);
+                navCta.style.background = ctaBg;
+                navCta.style.backgroundImage = isGradient(palette[0]) ? palette[0] : '';
+                navCta.style.backgroundColor = isGradient(palette[0]) ? '' : palette[0];
+                navCta.style.color = '#FFFFFF';
+                console.log('Applied nav-cta background:', ctaBg);
+            }
+
+            // Apply to single elements - primary button
+            const btnPrimary = document.querySelector('.btn-primary');
+            if (btnPrimary) {
+                if (isGradient(buttonBg)) {
+                    btnPrimary.style.backgroundImage = buttonBg;
+                    btnPrimary.style.backgroundColor = '';
+                } else {
+                    btnPrimary.style.backgroundColor = buttonBg;
+                    btnPrimary.style.backgroundImage = '';
                 }
-            });
+                btnPrimary.style.color = buttonTextColor;
+                console.log('Applied btn-primary, gradient?', isGradient(buttonBg), 'bg:', buttonBg);
+            }
 
-            // Apply to multiple elements
+            // Apply to multiple elements - hero sections
             document.querySelectorAll('.hero-section').forEach(el => {
-                el.style.background = getBgStyle(palette[0], palette[1]);
+                const heroBg = getBgStyle(palette[0], palette[1]);
+                if (isGradient(palette[0])) {
+                    el.style.backgroundImage = heroBg;
+                    el.style.backgroundColor = '';
+                } else {
+                    el.style.background = heroBg; // Use shorthand for created gradients
+                }
+                console.log('Applied hero-section background:', heroBg);
             });
 
+            // Apply to feature icons
             document.querySelectorAll('.feature-icon').forEach(el => {
-                el.style.background = getBgStyle(palette[2], palette[3]);
+                const iconBg = getBgStyle(palette[2], palette[3]);
+                if (isGradient(palette[2])) {
+                    el.style.backgroundImage = iconBg;
+                    el.style.backgroundColor = '';
+                } else {
+                    el.style.background = iconBg; // Use shorthand for created gradients
+                }
             });
 
             // Extract color for borders and text (use first hex from gradient if needed)
