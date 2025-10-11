@@ -146,6 +146,21 @@
             z-index: 1;
         }
 
+        /* View mode toggle */
+        .app-container[data-view="edit"] .preview-panel {
+            display: none;
+        }
+
+        .app-container[data-view="preview"] .control-panel {
+            display: none;
+        }
+
+        .app-container[data-view="edit"] .control-panel,
+        .app-container[data-view="preview"] .preview-panel {
+            width: 100%;
+            max-width: none;
+        }
+
         /* Control Panel */
         .control-panel {
             width: 480px;
@@ -154,7 +169,7 @@
             border-right: 1px solid var(--border-primary);
             display: flex;
             flex-direction: column;
-            transition: transform 0.3s ease;
+            transition: all 0.3s ease;
             z-index: 10;
         }
 
@@ -1967,6 +1982,10 @@
                             <span id="gradientIcon">🌈</span>
                             <span class="tooltip-content">Toggle Gradient Mode</span>
                         </button>
+                        <button class="icon-btn tooltip" onclick="toggleView()" id="viewToggleBtn">
+                            <span id="viewIcon">⚡</span>
+                            <span class="tooltip-content">View: Split Screen</span>
+                        </button>
                         <button class="icon-btn tooltip" onclick="showKeyboardShortcuts()">
                             <span>⌨️</span>
                             <span class="tooltip-content">Keyboard Shortcuts</span>
@@ -3043,6 +3062,7 @@
         const state = {
             palettes: [],
             selectedPalette: 0,
+            currentView: 'split', // 'split', 'edit', or 'preview'
             fonts: [
                 // Modern & Clean
                 { heading: 'Inter', body: 'Inter', name: 'Modern Clean' },
@@ -4907,6 +4927,33 @@
             document.getElementById('gradientIcon').textContent = state.gradientMode ? '✨' : '🌈';
             generatePalettes();
             showNotification(state.gradientMode ? 'Gradient mode enabled!' : 'Solid color mode enabled!', state.gradientMode ? '✨' : '🌈');
+        }
+
+        function toggleView() {
+            const container = document.querySelector('.app-container');
+            const viewIcon = document.getElementById('viewIcon');
+            const tooltip = document.querySelector('#viewToggleBtn .tooltip-content');
+
+            // Cycle through: split -> edit -> preview -> split
+            if (state.currentView === 'split') {
+                state.currentView = 'edit';
+                container.setAttribute('data-view', 'edit');
+                viewIcon.textContent = '✏️';
+                tooltip.textContent = 'View: Edit Only';
+                showNotification('Edit Mode - Full screen controls', '✏️');
+            } else if (state.currentView === 'edit') {
+                state.currentView = 'preview';
+                container.setAttribute('data-view', 'preview');
+                viewIcon.textContent = '👁️';
+                tooltip.textContent = 'View: Preview Only';
+                showNotification('Preview Mode - Full screen preview', '👁️');
+            } else {
+                state.currentView = 'split';
+                container.removeAttribute('data-view');
+                viewIcon.textContent = '⚡';
+                tooltip.textContent = 'View: Split Screen';
+                showNotification('Split Screen Mode - Edit & Preview', '⚡');
+            }
         }
 
         function togglePreviewDark() {
