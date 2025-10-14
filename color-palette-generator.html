@@ -1795,6 +1795,211 @@
                 display: block;
             }
 
+            /* Header Optimization */
+            .panel-header {
+                padding: 0.75rem 1rem;
+            }
+
+            .logo-section {
+                gap: 0.5rem;
+            }
+
+            .logo-icon {
+                width: 36px;
+                height: 36px;
+                font-size: 18px;
+            }
+
+            .app-title {
+                font-size: 1rem;
+            }
+
+            .app-version {
+                font-size: 0.65rem;
+            }
+
+            .header-actions {
+                gap: 0.25rem;
+            }
+
+            .icon-btn {
+                width: 36px;
+                height: 36px;
+                font-size: 1.1rem;
+            }
+
+            /* Hide some header buttons on mobile to reduce clutter */
+            .header-actions .icon-btn:nth-child(4) {
+                display: none; /* Hide keyboard shortcuts button */
+            }
+
+            /* User profile - make more compact */
+            .user-profile-btn {
+                padding: 0.35rem 0.6rem;
+                font-size: 0.8rem;
+            }
+
+            .user-profile-avatar {
+                width: 24px;
+                height: 24px;
+                font-size: 0.9rem;
+            }
+
+            .user-profile-name {
+                display: none; /* Hide text, show only avatar on mobile */
+            }
+
+            /* Style Presets - Stack vertically or make scrollable */
+            .style-presets {
+                padding: 0.75rem 1rem;
+                gap: 0.5rem;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .style-preset {
+                padding: 0.6rem 1rem;
+                font-size: 0.85rem;
+                white-space: nowrap;
+                flex-shrink: 0;
+            }
+
+            /* Tab Navigation - Bigger touch targets */
+            .tabs {
+                gap: 0.25rem;
+                padding: 0.5rem 1rem;
+            }
+
+            .tab {
+                flex: 1;
+                padding: 0.75rem 0.5rem;
+                font-size: 0.75rem;
+                min-height: 48px;
+                flex-direction: column;
+                gap: 0.25rem;
+            }
+
+            .tab span:first-child {
+                font-size: 1.2rem;
+            }
+
+            /* Panel Content - More padding for touch */
+            .panel-content {
+                padding: 1rem;
+            }
+
+            /* Section Headers - Larger and clearer */
+            .section-header {
+                padding: 0.75rem 1rem;
+                font-size: 0.7rem;
+            }
+
+            .section-title {
+                font-size: 0.85rem;
+            }
+
+            .generate-btn {
+                padding: 0.4rem 0.75rem;
+                font-size: 0.7rem;
+            }
+
+            /* Color Palettes - Optimize for mobile */
+            .palettes-container {
+                padding: 0 1rem 1rem;
+                gap: 1rem;
+            }
+
+            .palette-card {
+                padding: 1rem;
+                min-height: auto;
+            }
+
+            .palette-header {
+                margin-bottom: 0.75rem;
+            }
+
+            .palette-name {
+                font-size: 0.95rem;
+            }
+
+            .palette-colors {
+                gap: 0.5rem;
+                min-height: 60px;
+            }
+
+            .color-swatch {
+                min-width: 48px;
+                height: 60px;
+                border-radius: var(--radius-sm);
+            }
+
+            .color-code {
+                font-size: 0.7rem;
+                padding: 0.15rem 0.3rem;
+            }
+
+            /* Text Colors Section */
+            .text-colors-grid {
+                gap: 1rem;
+                padding: 0 1rem 1rem;
+            }
+
+            .text-color-item {
+                gap: 0.5rem;
+            }
+
+            .text-color-label {
+                font-size: 0.85rem;
+            }
+
+            .text-color-input {
+                min-height: 44px;
+                padding: 0.5rem;
+            }
+
+            .text-color-code {
+                font-size: 0.75rem;
+            }
+
+            /* Export Buttons */
+            .export-section {
+                padding: 1rem;
+                gap: 0.75rem;
+            }
+
+            .export-btn,
+            .export-format-btn {
+                padding: 0.85rem 1rem;
+                font-size: 0.9rem;
+                min-height: 48px;
+            }
+
+            /* Preview Panel Header */
+            .preview-panel-header {
+                padding: 0.75rem 1rem;
+                gap: 0.5rem;
+                flex-wrap: wrap;
+            }
+
+            .preview-title {
+                font-size: 0.8rem;
+            }
+
+            .preview-controls {
+                gap: 0.25rem;
+            }
+
+            .preview-btn {
+                width: 36px;
+                height: 36px;
+                font-size: 1rem;
+            }
+
+            /* Preview Content */
+            .preview-content {
+                -webkit-overflow-scrolling: touch;
+            }
+
             .hero-title {
                 font-size: calc(var(--size-base) * 2.5);
             }
@@ -1806,6 +2011,40 @@
             /* Hide collapse button on mobile */
             .collapse-btn {
                 display: none;
+            }
+
+            /* Modals - Full screen on mobile */
+            .modal-content {
+                width: 95%;
+                max-width: 95vw;
+                max-height: 90vh;
+                margin: 1rem;
+            }
+
+            .modal-header {
+                padding: 1rem;
+            }
+
+            .modal-title {
+                font-size: 1.1rem;
+            }
+
+            .modal-body {
+                padding: 1rem;
+            }
+
+            /* Form inputs - bigger touch targets */
+            .input-field,
+            textarea.input-field {
+                min-height: 44px;
+                font-size: 1rem;
+                padding: 0.75rem;
+            }
+
+            .btn {
+                min-height: 44px;
+                padding: 0.75rem 1.25rem;
+                font-size: 0.95rem;
             }
         }
     </style>
