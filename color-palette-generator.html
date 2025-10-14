@@ -1705,20 +1705,94 @@
             }
         }
 
+        /* Mobile Navigation */
+        .mobile-nav {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(18, 18, 26, 0.95);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid var(--border-primary);
+            z-index: 100;
+            padding: 0.5rem;
+        }
+
+        .mobile-nav-buttons {
+            display: flex;
+            gap: 0.5rem;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .mobile-nav-btn {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            background: var(--surface-primary);
+            border: 1px solid var(--border-primary);
+            border-radius: var(--radius-md);
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .mobile-nav-btn:hover {
+            background: var(--surface-hover);
+            color: var(--text-primary);
+        }
+
+        .mobile-nav-btn.active {
+            background: var(--accent-primary);
+            color: white;
+            border-color: var(--accent-primary);
+        }
+
         @media (max-width: 768px) {
+            .mobile-nav {
+                display: block;
+            }
+
             .app-container {
                 flex-direction: column;
+                padding-bottom: 60px;
             }
 
             .control-panel {
                 width: 100%;
-                height: 50vh;
+                height: 100vh;
                 border-right: none;
                 border-bottom: 1px solid var(--border-primary);
+                padding-bottom: 60px;
             }
 
             .preview-panel {
-                height: 50vh;
+                height: 100vh;
+                padding-bottom: 60px;
+            }
+
+            /* Hide panels by default on mobile */
+            body:not(.mobile-view-edit) .control-panel {
+                display: none;
+            }
+
+            body:not(.mobile-view-preview) .preview-panel {
+                display: none;
+            }
+
+            /* Show edit view by default */
+            body.mobile-view-edit .control-panel {
+                display: flex;
+            }
+
+            body.mobile-view-preview .preview-panel {
+                display: block;
             }
 
             .hero-title {
@@ -1726,6 +1800,11 @@
             }
 
             .nav-menu {
+                display: none;
+            }
+
+            /* Hide collapse button on mobile */
+            .collapse-btn {
                 display: none;
             }
         }
@@ -2554,6 +2633,20 @@
         <span id="notificationText">Success!</span>
     </div>
 
+    <!-- Mobile Navigation -->
+    <div class="mobile-nav" id="mobileNav">
+        <div class="mobile-nav-buttons">
+            <button class="mobile-nav-btn active" id="mobileEditBtn" onclick="switchMobileView('edit')">
+                <span>✏️</span>
+                <span>Edit</span>
+            </button>
+            <button class="mobile-nav-btn" id="mobilePreviewBtn" onclick="switchMobileView('preview')">
+                <span>👁️</span>
+                <span>Preview</span>
+            </button>
+        </div>
+    </div>
+
     <script>
         // State Management
         const state = {
@@ -2589,6 +2682,25 @@
             historyIndex: -1
         };
 
+        // Mobile View Switching
+        function switchMobileView(view) {
+            const body = document.body;
+            const editBtn = document.getElementById('mobileEditBtn');
+            const previewBtn = document.getElementById('mobilePreviewBtn');
+
+            if (view === 'edit') {
+                body.classList.remove('mobile-view-preview');
+                body.classList.add('mobile-view-edit');
+                editBtn.classList.add('active');
+                previewBtn.classList.remove('active');
+            } else if (view === 'preview') {
+                body.classList.remove('mobile-view-edit');
+                body.classList.add('mobile-view-preview');
+                previewBtn.classList.add('active');
+                editBtn.classList.remove('active');
+            }
+        }
+
         // Clerk Authentication
         let clerkInstance = null;
         let currentUser = null;
@@ -2604,6 +2716,11 @@
             updateCommunityUserUI();
             await initializeClerk();
             loadSavedDesigns();
+
+            // Set default mobile view to edit on page load
+            if (window.innerWidth <= 768) {
+                switchMobileView('edit');
+            }
         });
 
         async function initializeClerk() {
