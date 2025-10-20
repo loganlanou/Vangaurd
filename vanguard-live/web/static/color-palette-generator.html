@@ -2160,9 +2160,31 @@
                             <div class="section-title" style="flex-shrink: 0;">Color Palettes</div>
                             <input type="text" id="quickPromptInput" placeholder="e.g., ocean, corporate, forest..."
                                    style="flex: 1; min-width: 200px; padding: 0.5rem 0.75rem; border: 2px solid var(--border-primary); border-radius: var(--radius-md); font-size: 0.875rem; background: var(--surface-primary); color: var(--text-primary);"
-                                   onkeydown="if(event.key==='Enter') generateFromQuickPrompt()" />
+                                   onkeydown="if(event.key==='Enter') generateFromQuickPrompt()"
+                                   oninput="updateKeywordColorPreview()" />
                             <div class="section-action" onclick="generateFromQuickPrompt()" style="flex-shrink: 0;">Generate</div>
                         </div>
+
+                        <!-- Keyword Color Selection -->
+                        <div id="keywordColorSelection" style="display: none; margin: 1rem 0; padding: 1rem; background: var(--surface-primary); border: 1px solid var(--border-primary); border-radius: var(--radius-md);">
+                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;">
+                                <div style="font-size: 0.875rem; font-weight: 500; color: var(--text-secondary);">
+                                    Select colors to include:
+                                </div>
+                                <div style="display: flex; gap: 0.5rem;">
+                                    <button onclick="selectAllKeywordColors()" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; background: transparent; border: 1px solid var(--border-primary); color: var(--text-primary); border-radius: var(--radius-sm); cursor: pointer;">
+                                        All
+                                    </button>
+                                    <button onclick="deselectAllKeywordColors()" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; background: transparent; border: 1px solid var(--border-primary); color: var(--text-primary); border-radius: var(--radius-sm); cursor: pointer;">
+                                        None
+                                    </button>
+                                </div>
+                            </div>
+                            <div id="keywordColorsGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 0.5rem;">
+                                <!-- Color checkboxes will be inserted here -->
+                            </div>
+                        </div>
+
                         <div id="palettesContainer"></div>
                     </div>
 
@@ -4571,17 +4593,8 @@
             applyDesignSystem();
         }
 
-        // AI Prompt Functions
-        function generateFromQuickPrompt() {
-            const prompt = document.getElementById('quickPromptInput').value.trim();
-            if (!prompt) {
-                // If no prompt, generate random palettes
-                generatePalettes();
-                return;
-            }
-
-            // Parse prompt keywords for color generation
-            const colorKeywords = {
+        // Color Keywords Database (shared across functions)
+        const colorKeywords = {
                 // Blues
                 'ocean': ['#006994', '#0A7EA4', '#4FB3D9', '#A9D9F5', '#E0F4FF'],
                 'blue': ['#0052a3', '#0066cc', '#3399ff', '#66b2ff', '#cce5ff'],
@@ -4624,21 +4637,119 @@
                 'autumn': ['#92400e', '#b45309', '#d97706', '#f59e0b', '#fbbf24'],
                 'earth': ['#78350f', '#92400e', '#b45309', '#d97706', '#f59e0b'],
                 'brown': ['#78350f', '#92400e', '#a16207', '#ca8a04', '#eab308']
-            };
+        };
 
-            // Find matching colors based on keywords
+        // Keyword Color Selection Functions
+        function updateKeywordColorPreview() {
+            const prompt = document.getElementById('quickPromptInput').value.trim().toLowerCase();
+            const selectionDiv = document.getElementById('keywordColorSelection');
+            const colorsGrid = document.getElementById('keywordColorsGrid');
+
+            if (!prompt) {
+                selectionDiv.style.display = 'none';
+                return;
+            }
+
+            // Find matching keyword
+            let matchedKeyword = null;
             let matchedColors = null;
-            const lowerPrompt = prompt.toLowerCase();
             for (const [keyword, colors] of Object.entries(colorKeywords)) {
-                if (lowerPrompt.includes(keyword)) {
+                if (prompt.includes(keyword)) {
+                    matchedKeyword = keyword;
                     matchedColors = colors;
                     break;
                 }
             }
 
-            // Default to vibrant colors if no match
             if (!matchedColors) {
-                matchedColors = ['#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981'];
+                selectionDiv.style.display = 'none';
+                return;
+            }
+
+            // Show selection UI and populate colors
+            selectionDiv.style.display = 'block';
+            colorsGrid.innerHTML = '';
+
+            matchedColors.forEach((color, index) => {
+                const colorItem = document.createElement('div');
+                colorItem.style.cssText = 'position: relative; cursor: pointer;';
+                colorItem.innerHTML = `
+                    <input type="checkbox" id="keywordColor${index}" value="${color}"
+                           style="position: absolute; top: 0.25rem; right: 0.25rem; width: 16px; height: 16px; cursor: pointer; z-index: 2;"
+                           checked />
+                    <div style="width: 100%; height: 60px; background: ${color}; border-radius: var(--radius-sm); border: 2px solid var(--border-primary); position: relative;">
+                        <div style="position: absolute; bottom: 0.25rem; left: 0.25rem; right: 0.25rem; font-size: 0.65rem; color: ${getBrightness(color) > 128 ? '#000' : '#fff'}; font-weight: 500; text-shadow: 0 1px 2px rgba(0,0,0,0.3); overflow: hidden; text-overflow: ellipsis;">
+                            ${color}
+                        </div>
+                    </div>
+                `;
+                colorItem.onclick = (e) => {
+                    if (e.target.type !== 'checkbox') {
+                        const checkbox = colorItem.querySelector('input[type="checkbox"]');
+                        checkbox.checked = !checkbox.checked;
+                    }
+                };
+                colorsGrid.appendChild(colorItem);
+            });
+        }
+
+        function selectAllKeywordColors() {
+            document.querySelectorAll('#keywordColorsGrid input[type="checkbox"]').forEach(cb => cb.checked = true);
+        }
+
+        function deselectAllKeywordColors() {
+            document.querySelectorAll('#keywordColorsGrid input[type="checkbox"]').forEach(cb => cb.checked = false);
+        }
+
+        function getSelectedKeywordColors() {
+            const checkboxes = document.querySelectorAll('#keywordColorsGrid input[type="checkbox"]:checked');
+            return Array.from(checkboxes).map(cb => cb.value);
+        }
+
+        function getBrightness(hex) {
+            const rgb = hexToRGB(hex);
+            return (rgb.r * 299 + rgb.g * 587 + rgb.b * 114) / 1000;
+        }
+
+        function hexToRGB(hex) {
+            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? {
+                r: parseInt(result[1], 16),
+                g: parseInt(result[2], 16),
+                b: parseInt(result[3], 16)
+            } : { r: 0, g: 0, b: 0 };
+        }
+
+        // AI Prompt Functions
+        function generateFromQuickPrompt() {
+            const prompt = document.getElementById('quickPromptInput').value.trim();
+            if (!prompt) {
+                // If no prompt, generate random palettes
+                generatePalettes();
+                return;
+            }
+
+            // Check if user has selected specific colors
+            const selectedColors = getSelectedKeywordColors();
+            let matchedColors = null;
+
+            if (selectedColors.length > 0) {
+                // Use only selected colors
+                matchedColors = selectedColors;
+            } else {
+                // Find matching colors based on keywords
+                const lowerPrompt = prompt.toLowerCase();
+                for (const [keyword, colors] of Object.entries(colorKeywords)) {
+                    if (lowerPrompt.includes(keyword)) {
+                        matchedColors = colors;
+                        break;
+                    }
+                }
+
+                // Default to vibrant colors if no match
+                if (!matchedColors) {
+                    matchedColors = ['#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981'];
+                }
             }
 
             // Generate 8 palette variations
